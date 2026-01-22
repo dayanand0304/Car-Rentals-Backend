@@ -5,9 +5,9 @@ import com.CarRentalSystem.CarRentals.Repositories.CarRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 
 @Service
@@ -18,43 +18,50 @@ public class CarService {
 
     private final CarRepository carRepository;
 
-    //GET CAR DETAILS
+    //1.GET ALL CAR DETAILS
     public List<Car> getAllCars(){
         log.info("Fetching All Cars");
         return carRepository.findAll();
     }
 
-    //GET AVAILABLE CARS
-    public List<Car> getAvailableCars(){
-        log.info("Fetching Available Cars");
-        return carRepository.findByAvailable(true);
+    //2.GET CAR DETAILS BY ID
+    public Car getCarById(Integer carId) {
+        log.info("Fetching Car By carId:{}",carId);
+        return carRepository.findById(carId)
+                .orElseThrow(()-> new RuntimeException("Car Not Found"));
     }
 
-    //GET CAR DETAILS BY BRAND
+    //3.GET AVAILABLE CARS
+    public List<Car> getAvailableCars(){
+        log.info("Fetching Available Cars");
+        return carRepository.findByAvailableTrue();
+    }
+
+    //4.GET CAR DETAILS BY CAR BRAND
     public List<Car> carListByBrand(String carBrand){
         log.info("Fetching All Cars By BrandName:{}",carBrand);
         return carRepository.findByCarBrand(carBrand);
     }
 
-    //GET CAR DETAILS BY CAR BRAND AND MODEL
-    public List<Car> carListByBrandAndModel(String carBrand,String carModel){
+    //5.GET AVAILABLE CAR BRAND DETAILS
+    public List<Car> getAvailableCarsByCarBrand(String carBrand){
+        log.info("Fetching All Available Cars By BrandName:{}",carBrand );
+        return carRepository.findByCarBrandAndAvailableTrue(carBrand);
+    }
+
+    //6.GET CAR DETAILS BY CAR BRAND AND MODEL
+    public List<Car> carListByBrandAndModel(String carBrand, String carModel){
         log.info("Fetching All Cars By BrandName:{} and CarModel:{}",carBrand,carModel);
         return carRepository.findByCarBrandAndCarModel(carBrand,carModel);
     }
 
-    //GET CAR DETAILS BY ID
-    public Optional<Car> carListById(Integer carId) {
-        log.info("Fetching All Cars By carId:{}",carId);
-        return carRepository.findById(carId);
+    //7.CHECK IF CAR IS AVAILABLE OR NOT
+    public boolean isAvailable(Integer carId){
+        log.debug("checking Availability of CarId:{}",carId);
+        return carRepository.existsByCarIdAndAvailableTrue(carId);
     }
 
-    //CHECK IF CAR IS AVAILABLE OR NOT
-    public boolean isAvailable(Integer carId,boolean available){
-        log.debug("checking Availability of CarId:{} isAvailabel:{}",carId,available);
-        return carRepository.existsByCarIdAndAvailable(carId,available);
-    }
-
-    //ADD CAR
+    //8.ADD CAR
     public Car addCar(Car car){
         log.info("Adding New Car Of Brand:{} and Model:{}", car.getCarBrand(),car.getCarModel());
         Car saved=carRepository.save(car);
@@ -62,19 +69,25 @@ public class CarService {
         return saved;
     }
 
-    //DELETE CAR
-    public String deleteCar(Integer carId){
+    //9.DELETE CAR
+    public void deleteCar(Integer carId){
         log.info("Attempting to delete car with id: {}", carId);
-        if(carRepository.existsById(carId)){
-            carRepository.deleteById(carId);
-            log.info("Car With Id:{} is Deleted",carId);
-            return "Car Deleted";
+
+        if (!carRepository.existsById(carId)) {
+            log.warn("Car with id:{} not found", carId);
+            throw new RuntimeException("Car not found");
         }
-        log.warn("Car With Id:{} Not",carId);
-        return "Car Not Found";
+
+        if(!carRepository.existsByCarIdAndAvailableTrue(carId)){
+            log.error("Car With Id:{} is Rented, cannot delete",carId);
+            throw new IllegalStateException("Cannot delete rented car");
+        }
+        carRepository.deleteById(carId);
+        log.info("Car With Id:{} is deleted",carId);
     }
 
-    //EDIT CAR DETAILS
+    //10.EDIT CAR DETAILS
+    @Transactional
     public Car updateCarDetails(Integer carId,Car updatedDetails){
         log.info("Updating car with id: {}", carId);
         return carRepository.findById(carId)

@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/CarRentals_Database
     username: root
-    password:
+    password: dayanand
 
   jpa:
     hibernate:
