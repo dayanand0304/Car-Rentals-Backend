@@ -17,25 +17,34 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
 
 
-    //GET ALL CUSTOMERS
+    //1.GET ALL CUSTOMERS
     public List<Customer> getAllCustomers(){
         log.info("Fetching All Customers");
         return customerRepository.findAll();
     }
 
-    //GET CUSTOMER BY CUSTOMER ID
-    public Optional<Customer> getCustomerById(Integer customerId){
+    //2.GET CUSTOMER BY CUSTOMER ID
+    public Customer getCustomerById(Integer customerId){
         log.info("Fetching All Customers By Id:{}",customerId);
-        return customerRepository.findById(customerId);
+        return customerRepository.findById(customerId)
+                .orElseThrow(()->new RuntimeException("Customer not Found"));
     }
 
-    //GET CUSTOMER BY CUSTOMER NAME
+    //3.GET CUSTOMER BY CUSTOMER NAME BY CASE-INSENSITIVE
     public List<Customer> getCustomerByName(String customerName){
         log.info("Fetching All Customers By Customer Name:{}",customerName);
-        return customerRepository.findByCustomerName(customerName);
+        return customerRepository.findByCustomerNameIgnoreCase(customerName);
     }
 
-    //ADD CUSTOMER
+    //4.GET CUSTOMER BY PARTIAL CONTAINING AND CASE-INSENSITIVE SEARCH
+    public List<Customer> searchCustomers(String keyword){
+        log.info("Fetching All Customers By keyword ");
+        return customerRepository
+                .findByCustomerNameContainingIgnoreCaseOrCustomerEmailContainingIgnoreCaseOrCustomerPhoneNoContaining(
+                        keyword,keyword,keyword);
+    }
+
+    //5.ADD CUSTOMER
     public Customer addCustomer(Customer customer){
         log.info("Adding Customers With Name:{} and Email:{}",customer.getCustomerName(),customer.getCustomerEmail());
         Customer saved=customerRepository.save(customer);
@@ -43,36 +52,34 @@ public class CustomerService {
         return saved;
     }
 
-    //DELETE CUSTOMER BY CUSTOMER ID
-    public String deleteCustomer(Integer customerId){
-        log.info("Attempting to delete customer with id: {}",customerId);
-        if(customerRepository.existsById(customerId)){
-            customerRepository.deleteById(customerId);
-            log.info("Customer With Id:{} is Deleted",customerId);
-            return "Customer Deleted";
+    //6.DELETE CUSTOMER BY CUSTOMER ID
+    public void deleteCustomer(Integer customerId){
+        log.info("Attempting to delete customer with id: {}", customerId);
+
+        if (!customerRepository.existsById(customerId)) {
+            log.warn("Customer With Id: {} Not Found", customerId);
+            return;
         }
-        log.warn("Customer With Id: {} Not Found",customerId);
-        return "Customer Not Found";
+        customerRepository.deleteById(customerId);
+        log.info("Customer With Id:{} is Deleted", customerId);
     }
 
-    //UPDATE CUSTOMER DETAILS BY CUSTOMER ID
+    //7.UPDATE CUSTOMER DETAILS BY CUSTOMER ID
     public Customer updateCustomer(Integer customerId,Customer updated){
         log.info("Updating Customer with id: {}", customerId);
-        return customerRepository.findById(customerId)
-                .map(existing->{
-                    if(updated.getCustomerName()!=null){
-                        existing.setCustomerName(updated.getCustomerName());
-                    }
-                    if(updated.getCustomerPhoneNo()!=null){
-                        existing.setCustomerPhoneNo(updated.getCustomerPhoneNo());
-                    }
-                    if(updated.getCustomerEmail()!=null){
-                        existing.setCustomerEmail(updated.getCustomerEmail());
-                    }
-                    Customer saved=customerRepository.save(existing);
-                    log.info("Customer with id:{} updated successfully", saved.getCustomerId());
-                    return saved;
-                })
-                .orElse(null);
+        Customer existing=getCustomerById(customerId);
+
+        if(updated.getCustomerName()!=null) {
+            existing.setCustomerName(updated.getCustomerName());
+        }
+        if(updated.getCustomerPhoneNo()!=null) {
+            existing.setCustomerPhoneNo(updated.getCustomerPhoneNo());
+        }
+        if(updated.getCustomerEmail()!=null) {
+            existing.setCustomerEmail(updated.getCustomerEmail());
+        }
+        Customer saved=customerRepository.save(existing);
+        log.info("Customer with id:{} updated successfully", saved.getCustomerId());
+        return saved;
     }
 }

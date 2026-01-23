@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+//getting 500 instead of 400 for getcarbyid and deletecar method sol:create custom exception
 @RestController
 @RequestMapping("/car")
 @RequiredArgsConstructor
@@ -83,7 +84,7 @@ public class CarController {
 
     //9.DELETE CAR
     @DeleteMapping("/delete-car/{carId}")
-    public ResponseEntity<String> deleteCar(@PathVariable Integer carId){
+    public ResponseEntity<Void> deleteCar(@PathVariable Integer carId){
         carService.deleteCar(carId);
         return ResponseEntity.noContent().build();
     }

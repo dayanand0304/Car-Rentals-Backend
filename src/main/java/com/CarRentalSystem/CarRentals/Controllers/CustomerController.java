@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 
 @RestController
@@ -19,51 +18,54 @@ public class CustomerController {
 
     private final CustomerService customerService;
 
-    //GET ALL CUSTOMERS
+    //1.GET ALL CUSTOMERS
     @GetMapping("/get-all")
     public ResponseEntity<List<Customer>> getAllCustomers(){
         List<Customer> customers=customerService.getAllCustomers();
         return ResponseEntity.ok(customers);
     }
 
-    //GET CUSTOMER BY CUSTOMER ID
-    @GetMapping("/get/id/{customerId}")
+    //2.GET CUSTOMER BY CUSTOMER ID
+    @GetMapping("/id/{customerId}")
     public ResponseEntity<Customer> getCustomerById(@PathVariable Integer customerId){
-        Optional<Customer> customer=customerService.getCustomerById(customerId);
-        return customer.map(ResponseEntity::ok)
-                .orElseGet(()->ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        Customer customer=customerService.getCustomerById(customerId);
+        return ResponseEntity.ok(customer);
     }
 
-    //GET CUSTOMER BY CUSTOMER NAME
-    @GetMapping("/get/name/{customerName}")
+    //3.GET CUSTOMER BY CUSTOMER NAME
+    @GetMapping("/name/{customerName}")
     public ResponseEntity<List<Customer>> getByCustomerName(@PathVariable String customerName){
         List<Customer> customers=customerService.getCustomerByName(customerName);
         return ResponseEntity.ok(customers);
     }
 
-    //ADD CUSTOMER
+    //4.GET CUSTOMERS BY PARTIAL CONTAINING AND CASE-INSENSITIVE SEARCH
+    @GetMapping("/search")
+    public ResponseEntity<List<Customer>> getCustomerByNameContaining(
+            @RequestParam String keyword){
+        List<Customer> customers=customerService.searchCustomers(keyword);
+        return ResponseEntity.ok(customers);
+    }
+
+    //5.ADD CUSTOMER
     @PostMapping("/add-customer")
     public ResponseEntity<Customer> addCustomer(@RequestBody Customer customer){
         Customer newCustomer=customerService.addCustomer(customer);
         return ResponseEntity.status(HttpStatus.CREATED).body(newCustomer);
     }
 
-    //DELETE CUSTOMER BY CUSTOMER ID
-    @DeleteMapping("/delete/{customerId}")
-    public ResponseEntity<String> deleteCustomerById(@PathVariable Integer customerId){
-        String message=customerService.deleteCustomer(customerId);
-        return ResponseEntity.ok(message);
+    //6.DELETE CUSTOMER BY CUSTOMER ID
+    @DeleteMapping("/{customerId}")
+    public ResponseEntity<Void> deleteCustomerById(@PathVariable Integer customerId){
+        customerService.deleteCustomer(customerId);
+        return ResponseEntity.noContent().build();
     }
 
-    //UPDATE CUSTOMER DETAILS BY CUSTOMER ID
-    @PutMapping("/update/{customerId}")
+    //7.UPDATE CUSTOMER DETAILS BY CUSTOMER ID
+    @PutMapping("/{customerId}")
     public ResponseEntity<Customer> updateCustomer(@PathVariable Integer customerId,
                                                    @RequestBody Customer updated){
         Customer customer=customerService.updateCustomer(customerId,updated);
-        if(customer!=null){
-            return ResponseEntity.ok(customer);
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        return ResponseEntity.ok(customer);
     }
-
 }
