@@ -1,13 +1,15 @@
 package com.CarRentalSystem.CarRentals.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
-@Table(name = "Customers")
+@Table(name = "Customer_List")
 @Getter
 @Setter
 @NoArgsConstructor

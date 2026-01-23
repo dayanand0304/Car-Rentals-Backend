@@ -1,16 +1,20 @@
 package com.CarRentalSystem.CarRentals.Entities;
 
 import com.CarRentalSystem.CarRentals.DTO.BookingStatus;
+import com.CarRentalSystem.CarRentals.DTO.RentalType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Rentals")
+@Table(name = "Rental_List")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,25 +26,30 @@ public class Rental {
     private Integer rentalId;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "car_id",nullable = false)
     private Car car;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "customer_id",nullable = false)
     private Customer customer;
 
     private Integer days;
-
-    private Integer totalPrice;
-
-    private Boolean hourly;
-
     private Integer hours;
+
+    @Column(precision = 9,scale = 2,nullable = false)
+    private BigDecimal totalPrice;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RentalType rentalType;
 
     private LocalDateTime startTime;
     private LocalDateTime expectedReturnTime;
     private LocalDateTime actualReturnTime;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private BookingStatus status= BookingStatus.PENDING;
 }

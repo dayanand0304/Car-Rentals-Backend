@@ -19,12 +19,4 @@ public interface CarRepository extends JpaRepository<Car,Integer> {
     List<Car> findByCarBrandAndAvailableTrue(String carBrand);
 
     boolean existsByCarIdAndAvailableTrue(Integer carId);
-
-    @Modifying
-    @Query("UPDATE Car c SET c.available = false WHERE c.carId = :carId AND c.available = true")
-    int markCarAsBooked(Integer carId);
-
-    @Modifying
-    @Query("UPDATE Car c SET c.available = true WHERE c.carId = :carId AND c.available = false")
-    int markCarAsReturned(Integer carId);
 }
