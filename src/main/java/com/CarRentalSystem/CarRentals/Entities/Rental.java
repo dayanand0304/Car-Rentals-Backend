@@ -10,7 +10,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Rental_List")
+@Table(name = "Rentals")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,11 +22,11 @@ public class Rental {
     private Integer rentalId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "carId")
+    @JoinColumn(name = "car_id",nullable = false)
     private Car car;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customerId")
+    @JoinColumn(name = "customer_id",nullable = false)
     private Customer customer;
 
     private Integer days;
