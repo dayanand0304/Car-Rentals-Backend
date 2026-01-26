@@ -1,5 +1,6 @@
 package com.CarRentalSystem.CarRentals.Services;
 
+import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
 import com.CarRentalSystem.CarRentals.Entities.Customer;
 import com.CarRentalSystem.CarRentals.Repositories.CustomerRepository;
 import lombok.RequiredArgsConstructor;
@@ -7,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -27,7 +27,7 @@ public class CustomerService {
     public Customer getCustomerById(Integer customerId){
         log.info("Fetching All Customers By Id:{}",customerId);
         return customerRepository.findById(customerId)
-                .orElseThrow(()->new RuntimeException("Customer not Found"));
+                .orElseThrow(()->new CustomerNotFoundException(customerId));
     }
 
     //3.GET CUSTOMER BY CUSTOMER NAME BY CASE-INSENSITIVE
@@ -58,7 +58,7 @@ public class CustomerService {
 
         if (!customerRepository.existsById(customerId)) {
             log.warn("Customer With Id: {} Not Found", customerId);
-            return;
+            throw new CustomerNotFoundException(customerId);
         }
         customerRepository.deleteById(customerId);
         log.info("Customer With Id:{} is Deleted", customerId);

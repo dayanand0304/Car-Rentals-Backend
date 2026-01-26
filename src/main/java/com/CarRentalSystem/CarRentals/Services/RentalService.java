@@ -1,5 +1,9 @@
 package com.CarRentalSystem.CarRentals.Services;
 
+import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotAvailableException;
+import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotFoundException;
+import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
+import com.CarRentalSystem.CarRentals.CustomExceptions.Rentals.*;
 import com.CarRentalSystem.CarRentals.Enums.BookingStatus;
 import com.CarRentalSystem.CarRentals.Enums.RentalType;
 import com.CarRentalSystem.CarRentals.Entities.Car;
@@ -40,7 +44,7 @@ public class RentalService {
     public Rental getRentalByRentalId(Integer rentalId){
         log.info("Fetching All Rentals By Rental Id:{}",rentalId);
         return rentalRepository.findById(rentalId)
-                .orElseThrow(()->new RuntimeException("Rental Not Found"));
+                .orElseThrow(()->new RentalNotFoundException(rentalId));
     }
 
     //3.GET RENTALS BY CUSTOMER ID
@@ -72,37 +76,37 @@ public class RentalService {
     public Rental rentACar(Integer carId,
                            Integer customerId,
                            RentalType rentalType,
-                           Integer duration) throws RuntimeException{
+                           Integer duration){
 
         log.info("Renting Process of {} Bases Started for customerId:{} and carId:{}",
                 rentalType,customerId,carId);
 
         if(duration ==null || duration <=0){
             log.warn("Invalid Duration Provided:{}", duration);
-            throw new RuntimeException("Duration Should be Greater than Zero");
+            throw new DurationException(duration);
         }
 
         log.info("Fetching Customer With Id:{}",customerId);
         Customer customer=customerRepository.findById(customerId)
                 .orElseThrow(()-> {
                     log.error("Customer With Id {} Not Found",customerId);
-                    return new RuntimeException("Customer With Id "+customerId+" Not Found");
+                    return new CustomerNotFoundException(customerId);
                 });
 
         log.info("Fetching Car With Id:{}",carId);
         Car car=carRepository.findById(carId)
                 .orElseThrow(()->{
                     log.error("Car With Id:{} Not Found",carId);
-                    return new RuntimeException("Car With Id "+carId+" Not Found");
+                    return new CarNotFoundException(carId);
                 });
 
         if(!car.getAvailable()){
             log.warn("Car With Id:{} is Not Available",carId);
-            throw new RuntimeException("Car With Id:"+carId+" is Not Available");
+            throw new CarNotAvailableException(carId);
         }
 
         if (rentalType == null) {
-            throw new RuntimeException("Rental type must be provided");
+            throw new RentalTypeException(rentalType);
         }
 
         Rental rental=new Rental();
@@ -159,11 +163,11 @@ public class RentalService {
         Rental rental=rentalRepository.findById(rentalId)
                 .orElseThrow(()->{
                     log.error("Rental With Id:{} Not Found",rentalId);
-                    return new RuntimeException("Rental With Id "+rentalId+" Not Found");
+                    return new RentalNotFoundException(rentalId);
                 });
 
         if (rental.getActualReturnTime() != null) {
-            throw new RuntimeException("Car already returned");
+            throw new AlreadyReturnedException();
         }
         Car car=rental.getCar();
 
@@ -207,12 +211,12 @@ public class RentalService {
         Rental rental=rentalRepository.findById(rentalId)
                 .orElseThrow(()->{
                     log.error("Rental With Id:{} Not Found",rentalId);
-                    return new RuntimeException("Rental Id With "+rentalId+" Not Found");
+                    return new RentalNotFoundException(rentalId);
                 });
 
         if(rental.getActualReturnTime()!=null){
             log.warn("Request To Cancel After Return for RentalId:{}",rentalId);
-            throw new RuntimeException("Cannot Cancel A Rental That it has Already Returned");
+            throw new CannotCancelException();
         }
         Car car=rental.getCar();
         car.setAvailable(true);

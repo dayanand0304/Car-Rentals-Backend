@@ -1,5 +1,7 @@
 package com.CarRentalSystem.CarRentals.Services;
 
+import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotAvailableException;
+import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotFoundException;
 import com.CarRentalSystem.CarRentals.Entities.Car;
 import com.CarRentalSystem.CarRentals.Repositories.CarRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +30,7 @@ public class CarService {
     public Car getCarById(Integer carId) {
         log.info("Fetching Car By carId:{}",carId);
         return carRepository.findById(carId)
-                .orElseThrow(()-> new RuntimeException("Car Not Found"));
+                .orElseThrow(()-> new CarNotFoundException(carId));
     }
 
     //3.GET AVAILABLE CARS
@@ -75,12 +77,12 @@ public class CarService {
 
         if (!carRepository.existsById(carId)) {
             log.warn("Car with id:{} not found", carId);
-            throw new RuntimeException("Car not found");
+            throw new CarNotFoundException(carId);
         }
 
         if(!carRepository.existsByCarIdAndAvailableTrue(carId)){
             log.error("Car With Id:{} is Rented, cannot delete",carId);
-            throw new IllegalStateException("Cannot delete rented car");
+            throw new CarNotAvailableException(carId);
         }
         carRepository.deleteById(carId);
         log.info("Car With Id:{} is deleted",carId);
@@ -108,6 +110,6 @@ public class CarService {
                     return saved;
 
                 })
-                .orElse(null);
+                .orElseThrow(()->new CarNotFoundException(carId));
     }
 }
