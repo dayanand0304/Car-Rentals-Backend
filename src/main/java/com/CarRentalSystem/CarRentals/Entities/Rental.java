@@ -1,9 +1,8 @@
 package com.CarRentalSystem.CarRentals.Entities;
 
-import com.CarRentalSystem.CarRentals.DTO.BookingStatus;
-import com.CarRentalSystem.CarRentals.DTO.RentalType;
+import com.CarRentalSystem.CarRentals.Enums.BookingStatus;
+import com.CarRentalSystem.CarRentals.Enums.RentalType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,17 +25,14 @@ public class Rental {
     private Integer rentalId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnore
     @JoinColumn(name = "car_id",nullable = false)
     private Car car;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnore
     @JoinColumn(name = "customer_id",nullable = false)
     private Customer customer;
 
-    private Integer days;
-    private Integer hours;
+    private Integer duration;
 
     @Column(precision = 9,scale = 2,nullable = false)
     private BigDecimal totalPrice;

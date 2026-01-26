@@ -1,6 +1,6 @@
 package com.CarRentalSystem.CarRentals.Repositories;
 
-import com.CarRentalSystem.CarRentals.DTO.BookingStatus;
+import com.CarRentalSystem.CarRentals.Enums.BookingStatus;
 import com.CarRentalSystem.CarRentals.Entities.Rental;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

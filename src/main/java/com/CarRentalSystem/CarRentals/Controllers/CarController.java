@@ -1,5 +1,8 @@
 package com.CarRentalSystem.CarRentals.Controllers;
 
+import com.CarRentalSystem.CarRentals.DTO.CarMapper;
+import com.CarRentalSystem.CarRentals.DTO.Request.CarCreateRequest;
+import com.CarRentalSystem.CarRentals.DTO.Response.CarResponse;
 import com.CarRentalSystem.CarRentals.Entities.Car;
 import com.CarRentalSystem.CarRentals.Services.CarService;
 import lombok.RequiredArgsConstructor;
@@ -20,52 +23,67 @@ public class CarController {
 
     //1.GET CAR DETAILS
     @GetMapping("/get-all")
-    public ResponseEntity<List<Car>> getAllCars(){
-        List<Car> cars=carService.getAllCars();
+    public ResponseEntity<List<CarResponse>> getAllCars(){
+        List<CarResponse> cars=carService.getAllCars()
+                .stream()
+                .map(CarMapper::response)
+                .toList();
         return ResponseEntity.ok(cars);
     }
 
     //2.GET CAR DETAILS BY ID
     @GetMapping("/get-car/{carId}")
-    public ResponseEntity<Car> getCarById(@PathVariable Integer carId){
+    public ResponseEntity<CarResponse> getCarById(@PathVariable Integer carId){
         Car car=carService.getCarById(carId);
-        return ResponseEntity.ok(car);
+        return ResponseEntity.ok(CarMapper.response(car));
     }
 
     //3.GET AVAILABLE CARS
     @GetMapping("/get-available-cars")
-    public ResponseEntity<List<Car>> getAvailableCars(){
-        List<Car> cars=carService.getAvailableCars();
+    public ResponseEntity<List<CarResponse>> getAvailableCars(){
+        List<CarResponse> cars=carService.getAvailableCars()
+                .stream()
+                .map(CarMapper::response)
+                .toList();
         return ResponseEntity.ok(cars);
     }
 
     //4.GET CARS BY BRAND
     @GetMapping("/car-brand/{carBrand}")
-    public ResponseEntity<List<Car>> getCarsByBrand(@PathVariable String carBrand){
-        List<Car> cars=carService.carListByBrand(carBrand);
+    public ResponseEntity<List<CarResponse>> getCarsByBrand(@PathVariable String carBrand){
+        List<CarResponse> cars=carService.carListByBrand(carBrand)
+                .stream()
+                .map(CarMapper::response)
+                .toList();
         return ResponseEntity.ok(cars);
     }
 
     //5.GET AVAILABLE CARS BY CAR BRAND
     @GetMapping("/car-brand-available/{carBrand}")
-    public ResponseEntity<List<Car>> getAvailableCarsByBrand(@PathVariable String carBrand){
-        List<Car> cars=carService.getAvailableCarsByCarBrand(carBrand);
+    public ResponseEntity<List<CarResponse>> getAvailableCarsByBrand(@PathVariable String carBrand){
+        List<CarResponse> cars=carService.getAvailableCarsByCarBrand(carBrand)
+                .stream()
+                .map(CarMapper::response)
+                .toList();
         return ResponseEntity.ok(cars);
     }
 
     //6.GET CAR DETAILS BY CAR BRAND OR  MODEL
     @GetMapping("/search")
-    public ResponseEntity<List<Car>> getCarsByBrandAndModel(
+    public ResponseEntity<List<CarResponse>> getCarsByBrandAndModel(
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String model) {
 
+        List<Car> cars;
         if (brand != null && model != null) {
-            return ResponseEntity.ok(carService.carListByBrandAndModel(brand,model));
+            cars=carService.carListByBrandAndModel(brand,model);
         }else if(brand!=null){
-            return ResponseEntity.ok(carService.carListByBrand(brand));
+            cars=carService.carListByBrand(brand);
         }else {
             return ResponseEntity.badRequest().build();
         }
+        return ResponseEntity.ok(cars.stream()
+                .map(CarMapper::response).toList());
     }
 
     //7.CHECK IF CAR IS AVAILABLE OR NOT
@@ -77,9 +95,11 @@ public class CarController {
 
     //8.ADD CAR
     @PostMapping("/add-car")
-    public ResponseEntity<Car> addCar(@RequestBody Car car){
-        Car newCar=carService.addCar(car);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newCar);
+    public ResponseEntity<CarResponse> addCar(@RequestBody CarCreateRequest car){
+        Car newCar=CarMapper.create(car);
+        Car saved=carService.addCar(newCar);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(CarMapper.response(saved));
     }
 
     //9.DELETE CAR
@@ -91,12 +111,10 @@ public class CarController {
 
     //10.EDIT CAR DETAILS
     @PutMapping("/update-car/{carId}")
-    public ResponseEntity<Car> updateCarDetails(@PathVariable Integer carId,
-                                                @RequestBody Car update){
-        Car car=carService.updateCarDetails(carId,update);
-        if(car!=null){
-            return ResponseEntity.ok(car);
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    public ResponseEntity<CarResponse> updateCarDetails(@PathVariable Integer carId,
+                                                @RequestBody CarCreateRequest car){
+        Car update=CarMapper.create(car);
+        Car updated=carService.updateCarDetails(carId,update);
+        return ResponseEntity.ok(CarMapper.response(updated));
     }
 }

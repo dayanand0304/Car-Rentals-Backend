@@ -1,4 +1,4 @@
-package com.CarRentalSystem.CarRentals.DTO;
+package com.CarRentalSystem.CarRentals.Enums;
 
 public enum BookingStatus {
     PENDING,

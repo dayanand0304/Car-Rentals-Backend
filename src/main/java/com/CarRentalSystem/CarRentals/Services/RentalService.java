@@ -1,7 +1,7 @@
 package com.CarRentalSystem.CarRentals.Services;
 
-import com.CarRentalSystem.CarRentals.DTO.BookingStatus;
-import com.CarRentalSystem.CarRentals.DTO.RentalType;
+import com.CarRentalSystem.CarRentals.Enums.BookingStatus;
+import com.CarRentalSystem.CarRentals.Enums.RentalType;
 import com.CarRentalSystem.CarRentals.Entities.Car;
 import com.CarRentalSystem.CarRentals.Entities.Customer;
 import com.CarRentalSystem.CarRentals.Entities.Rental;
@@ -114,12 +114,10 @@ public class RentalService {
         rental.setStartTime(LocalDateTime.now());
 
         if(rentalType==RentalType.DAILY){
-            rental.setDays(duration);
-            rental.setHours(null);
+            rental.setDuration(duration);
             rental.setExpectedReturnTime(rental.getStartTime().plusDays(duration));
         }else{
-            rental.setHours(duration);
-            rental.setDays(null);
+            rental.setDuration(duration);
             rental.setExpectedReturnTime(rental.getStartTime().plusHours(duration));
         }
         BigDecimal totalPrice=calculatePrice(car,rentalType,duration);

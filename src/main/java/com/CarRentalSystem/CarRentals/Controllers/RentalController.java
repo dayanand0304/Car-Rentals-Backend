@@ -1,7 +1,9 @@
 package com.CarRentalSystem.CarRentals.Controllers;
 
-import com.CarRentalSystem.CarRentals.DTO.BookingStatus;
-import com.CarRentalSystem.CarRentals.DTO.RentalType;
+import com.CarRentalSystem.CarRentals.DTO.RentalMapper;
+import com.CarRentalSystem.CarRentals.DTO.Request.RentalCreateRequest;
+import com.CarRentalSystem.CarRentals.DTO.Response.RentalResponse;
+import com.CarRentalSystem.CarRentals.Enums.BookingStatus;
 import com.CarRentalSystem.CarRentals.Entities.Rental;
 import com.CarRentalSystem.CarRentals.Services.RentalService;
 import lombok.RequiredArgsConstructor;
@@ -20,62 +22,80 @@ public class RentalController {
 
     //1.GET ALL RENTALS
     @GetMapping("/get-all")
-    public ResponseEntity<List<Rental>> getAllRentals(){
-        List<Rental> rentals=rentalService.getAllRentals();
+    public ResponseEntity<List<RentalResponse>> getAllRentals(){
+        List<RentalResponse> rentals=rentalService.getAllRentals()
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
         return ResponseEntity.ok(rentals);
     }
 
     //2.GET RENTAL BY RENTAL ID
     @GetMapping("/{rentalId}")
-    public ResponseEntity<Rental> getRentalById(@PathVariable Integer rentalId){
+    public ResponseEntity<RentalResponse> getRentalById(@PathVariable Integer rentalId){
         Rental rental=rentalService.getRentalByRentalId(rentalId);
-        return ResponseEntity.ok(rental);
+        return ResponseEntity.ok(RentalMapper.response(rental));
     }
 
     //3.GET RENTALS BY CUSTOMER ID
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<Rental>> getRentalByCustomer(@PathVariable Integer customerId){
-        List<Rental> rentals=rentalService.getRentalsByCustomerId(customerId);
+    public ResponseEntity<List<RentalResponse>> getRentalByCustomer(@PathVariable Integer customerId){
+        List<RentalResponse> rentals=rentalService.getRentalsByCustomerId(customerId)
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
         return ResponseEntity.ok(rentals);
     }
 
     //4.GET RENTALS BY CAR ID
     @GetMapping("/car/{carId}")
-    public ResponseEntity<List<Rental>> getRentalByCar(@PathVariable Integer carId){
-        List<Rental> rentals=rentalService.getRentalByCarId(carId);
+    public ResponseEntity<List<RentalResponse>> getRentalByCar(@PathVariable Integer carId){
+        List<RentalResponse> rentals=rentalService.getRentalByCarId(carId)
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
         return ResponseEntity.ok(rentals);
     }
 
     //5.GET RENTALS BY Status
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Rental>> getRentalByStatus(@PathVariable BookingStatus status){
-        List<Rental> rentals=rentalService.getRentalByStatus(status);
+    public ResponseEntity<List<RentalResponse>> getRentalByStatus(@PathVariable BookingStatus status){
+        List<RentalResponse> rentals=rentalService.getRentalByStatus(status)
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
         return ResponseEntity.ok(rentals);
     }
 
     //6.GET RENTALS BY CUSTOMER ID AND STATUS
     @GetMapping("/customer/{customerId}/{status}")
-    public ResponseEntity<List<Rental>> getRentalByCustomerIdAndStatus(@PathVariable Integer customerId, @PathVariable BookingStatus status){
-        List<Rental> rentals=rentalService.getRentalByCustomerIdAndStatus(customerId,status);
+    public ResponseEntity<List<RentalResponse>> getRentalByCustomerIdAndStatus(@PathVariable Integer customerId, @PathVariable BookingStatus status){
+        List<RentalResponse> rentals=rentalService.getRentalByCustomerIdAndStatus(customerId,status)
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
         return ResponseEntity.ok(rentals);
     }
 
     //7.RENT A CAR
     @PostMapping("/rent-car")
-    public ResponseEntity<Rental> rentACar(@RequestParam Integer carId,
-                                           @RequestParam Integer customerId,
-                                           @RequestParam RentalType rentalType,
-                                           @RequestParam Integer duration){
+    public ResponseEntity<RentalResponse> rentACar(@RequestBody RentalCreateRequest request){
 
-        Rental rental=rentalService.rentACar(carId,customerId,rentalType,duration);
-        return ResponseEntity.status(HttpStatus.CREATED).body(rental);
+        Rental rental=rentalService.rentACar(
+                request.getCarId(),
+                request.getCustomerId(),
+                request.getRentalType(),
+                request.getDuration()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(RentalMapper.response(rental));
     }
 
     //8.RETURN A CAR
     @PutMapping("/return-car/{rentalId}")
-    public ResponseEntity<Rental> returnCar(@PathVariable Integer rentalId){
+    public ResponseEntity<RentalResponse> returnCar(@PathVariable Integer rentalId){
         Rental rental=rentalService.returnACar(rentalId);
-        return ResponseEntity.ok(rental);
+        return ResponseEntity.ok(RentalMapper.response(rental));
     }
 
     //9.CANCEL RENTAL
@@ -87,8 +107,11 @@ public class RentalController {
 
     //10.GET OVER DUES RENTALS
     @GetMapping("/over-dues")
-    public ResponseEntity<List<Rental>> getOverDues(){
-        List<Rental> rentals=rentalService.getAllOverdueRentals();
+    public ResponseEntity<List<RentalResponse>> getOverDues(){
+        List<RentalResponse> rentals=rentalService.getAllOverdueRentals()
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
         return ResponseEntity.ok(rentals);
     }
 }
