@@ -2,9 +2,11 @@ package com.CarRentalSystem.CarRentals.Controllers;
 
 import com.CarRentalSystem.CarRentals.DTO.CarMapper;
 import com.CarRentalSystem.CarRentals.DTO.Request.CarCreateRequest;
+import com.CarRentalSystem.CarRentals.DTO.Request.CarUpdateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Response.CarResponse;
 import com.CarRentalSystem.CarRentals.Entities.Car;
 import com.CarRentalSystem.CarRentals.Services.CarService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -94,7 +96,7 @@ public class CarController {
 
     //8.ADD CAR
     @PostMapping("/add-car")
-    public ResponseEntity<CarResponse> addCar(@RequestBody CarCreateRequest car){
+    public ResponseEntity<CarResponse> addCar(@Valid @RequestBody CarCreateRequest car){
         Car newCar=CarMapper.create(car);
         Car saved=carService.addCar(newCar);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -111,8 +113,8 @@ public class CarController {
     //10.EDIT CAR DETAILS
     @PutMapping("/update-car/{carId}")
     public ResponseEntity<CarResponse> updateCarDetails(@PathVariable Integer carId,
-                                                @RequestBody CarCreateRequest car){
-        Car update=CarMapper.create(car);
+                                                        @RequestBody CarUpdateRequest car){
+        Car update=CarMapper.update(car);
         Car updated=carService.updateCarDetails(carId,update);
         return ResponseEntity.ok(CarMapper.response(updated));
     }

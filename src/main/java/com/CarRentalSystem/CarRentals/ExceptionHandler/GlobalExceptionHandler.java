@@ -8,6 +8,8 @@ import com.CarRentalSystem.CarRentals.CustomExceptions.Rentals.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -20,7 +22,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             CarNotFoundException.class,
             CustomerNotFoundException.class,
-            RentalNotFoundException.class
+            RentalNotFoundException.class,
+            RentalNotFoundByCustomerIdException.class,
+            RentalNotFoundByCarIdException.class
     })
     public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException ex,
                                                         HttpServletRequest request){
@@ -41,6 +45,23 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 ex.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
+    //400: Validation Failure
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationError(MethodArgumentNotValidException ex,
+                                                               HttpServletRequest request){
+        String message=ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(FieldError::getDefaultMessage)
+                .findFirst()
+                .orElse("Validation failed");
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                message,
                 request.getRequestURI()
         );
     }

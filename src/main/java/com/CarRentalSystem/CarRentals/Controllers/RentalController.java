@@ -6,6 +6,7 @@ import com.CarRentalSystem.CarRentals.DTO.Response.RentalResponse;
 import com.CarRentalSystem.CarRentals.Enums.BookingStatus;
 import com.CarRentalSystem.CarRentals.Entities.Rental;
 import com.CarRentalSystem.CarRentals.Services.RentalService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -79,7 +80,7 @@ public class RentalController {
 
     //7.RENT A CAR
     @PostMapping("/rent-car")
-    public ResponseEntity<RentalResponse> rentACar(@RequestBody RentalCreateRequest request){
+    public ResponseEntity<RentalResponse> rentACar(@Valid @RequestBody RentalCreateRequest request){
 
         Rental rental=rentalService.rentACar(
                 request.getCarId(),

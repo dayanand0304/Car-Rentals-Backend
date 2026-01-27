@@ -2,9 +2,11 @@ package com.CarRentalSystem.CarRentals.Controllers;
 
 import com.CarRentalSystem.CarRentals.DTO.CustomerMapper;
 import com.CarRentalSystem.CarRentals.DTO.Request.CustomerCreateRequest;
+import com.CarRentalSystem.CarRentals.DTO.Request.CustomerUpdateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Response.CustomerResponse;
 import com.CarRentalSystem.CarRentals.Entities.Customer;
 import com.CarRentalSystem.CarRentals.Services.CustomerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,7 +63,7 @@ public class CustomerController {
 
     //5.ADD CUSTOMER
     @PostMapping("/add-customer")
-    public ResponseEntity<CustomerResponse> addCustomer(@RequestBody CustomerCreateRequest customer){
+    public ResponseEntity<CustomerResponse> addCustomer(@Valid @RequestBody CustomerCreateRequest customer){
         Customer newCustomer=CustomerMapper.create(customer);
         Customer saved=customerService.addCustomer(newCustomer);
         return ResponseEntity.status(HttpStatus.CREATED).body(CustomerMapper.response(saved));
@@ -77,9 +79,9 @@ public class CustomerController {
     //7.UPDATE CUSTOMER DETAILS BY CUSTOMER ID
     @PutMapping("/{customerId}")
     public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable Integer customerId,
-                                                   @RequestBody CustomerCreateRequest customer){
+                                                           @RequestBody CustomerUpdateRequest customer){
 
-        Customer update=CustomerMapper.create(customer);
+        Customer update=CustomerMapper.update(customer);
         Customer updated=customerService.updateCustomer(customerId,update);
         return ResponseEntity.ok(CustomerMapper.response(updated));
     }
