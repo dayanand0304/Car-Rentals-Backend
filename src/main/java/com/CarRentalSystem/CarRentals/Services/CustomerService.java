@@ -33,15 +33,22 @@ public class CustomerService {
     //3.GET CUSTOMER BY CUSTOMER NAME BY CASE-INSENSITIVE
     public List<Customer> getCustomerByName(String customerName){
         log.info("Fetching All Customers By Customer Name:{}",customerName);
-        return customerRepository.findByCustomerNameIgnoreCase(customerName);
+        List<Customer> customers=customerRepository.findByCustomerNameIgnoreCase(customerName);
+        if(customers.isEmpty()){
+            throw new CustomerNotFoundException(customerName);
+        }
+        return customers;
     }
 
     //4.GET CUSTOMER BY PARTIAL CONTAINING AND CASE-INSENSITIVE SEARCH
     public List<Customer> searchCustomers(String keyword){
         log.info("Fetching All Customers By keyword ");
-        return customerRepository
-                .findByCustomerNameContainingIgnoreCaseOrCustomerEmailContainingIgnoreCaseOrCustomerPhoneNoContaining(
+        List<Customer> customers=customerRepository.findByCustomerNameContainingIgnoreCaseOrCustomerEmailContainingIgnoreCaseOrCustomerPhoneNoContaining(
                         keyword,keyword,keyword);
+        if(customers.isEmpty()){
+            throw new CustomerNotFoundException();
+        }
+        return customers;
     }
 
     //5.ADD CUSTOMER
@@ -55,12 +62,9 @@ public class CustomerService {
     //6.DELETE CUSTOMER BY CUSTOMER ID
     public void deleteCustomer(Integer customerId){
         log.info("Attempting to delete customer with id: {}", customerId);
-
-        if (!customerRepository.existsById(customerId)) {
-            log.warn("Customer With Id: {} Not Found", customerId);
-            throw new CustomerNotFoundException(customerId);
-        }
-        customerRepository.deleteById(customerId);
+        Customer customer=customerRepository.findById(customerId)
+                        .orElseThrow(()->new CustomerNotFoundException(customerId));
+        customerRepository.delete(customer);
         log.info("Customer With Id:{} is Deleted", customerId);
     }
 

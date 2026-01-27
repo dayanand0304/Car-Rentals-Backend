@@ -86,10 +86,6 @@ public class CarService {
     //8.ADD CAR
     public Car addCar(Car car){
         log.info("Adding New Car Of Brand:{} and Model:{}", car.getCarBrand(),car.getCarModel());
-
-        if(carRepository.existsByCarBrandAndCarModel(car.getCarBrand(), car.getCarModel())){
-            throw new CarAlreadyExistsException(car.getCarBrand(), car.getCarModel());
-        }
         Car saved=carRepository.save(car);
         log.info("Added New Car with id:{}",saved.getCarId());
         return saved;
