@@ -1,5 +1,6 @@
 package com.CarRentalSystem.CarRentals.Services;
 
+import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarAlreadyExistsException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotAvailableException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotFoundException;
 import com.CarRentalSystem.CarRentals.Entities.Car;
@@ -36,36 +37,59 @@ public class CarService {
     //3.GET AVAILABLE CARS
     public List<Car> getAvailableCars(){
         log.info("Fetching Available Cars");
-        return carRepository.findByAvailableTrue();
+        List<Car> cars=carRepository.findByAvailableTrue();
+        if(cars.isEmpty()){
+            throw new CarNotAvailableException();
+        }
+        return cars;
     }
 
     //4.GET CAR DETAILS BY CAR BRAND
     public List<Car> carListByBrand(String carBrand){
         log.info("Fetching All Cars By BrandName:{}",carBrand);
-        return carRepository.findByCarBrand(carBrand);
+        List<Car> cars=carRepository.findByCarBrand(carBrand);
+        if(cars.isEmpty()){
+            throw new CarNotFoundException(carBrand);
+        }
+        return cars;
     }
 
     //5.GET AVAILABLE CAR BRAND DETAILS
     public List<Car> getAvailableCarsByCarBrand(String carBrand){
         log.info("Fetching All Available Cars By BrandName:{}",carBrand );
-        return carRepository.findByCarBrandAndAvailableTrue(carBrand);
+        List<Car> cars=carRepository.findByCarBrandAndAvailableTrue(carBrand);
+        if(cars.isEmpty()){
+            throw new CarNotFoundException(carBrand);
+        }
+        return cars;
     }
 
     //6.GET CAR DETAILS BY CAR BRAND AND MODEL
     public List<Car> carListByBrandAndModel(String carBrand, String carModel){
         log.info("Fetching All Cars By BrandName:{} and CarModel:{}",carBrand,carModel);
-        return carRepository.findByCarBrandAndCarModel(carBrand,carModel);
+
+        List<Car> cars=carRepository.findByCarBrandAndCarModel(carBrand,carModel);
+        if(cars.isEmpty()){
+            throw new CarNotFoundException(carBrand,carModel);
+        }
+        return cars;
     }
 
     //7.CHECK IF CAR IS AVAILABLE OR NOT
     public boolean isAvailable(Integer carId){
         log.debug("checking Availability of CarId:{}",carId);
-        return carRepository.existsByCarIdAndAvailableTrue(carId);
+        Car car=carRepository.findById(carId)
+                .orElseThrow(()->new CarNotFoundException(carId));
+        return car.getAvailable();
     }
 
     //8.ADD CAR
     public Car addCar(Car car){
         log.info("Adding New Car Of Brand:{} and Model:{}", car.getCarBrand(),car.getCarModel());
+
+        if(carRepository.existsByCarBrandAndCarModel(car.getCarBrand(), car.getCarModel())){
+            throw new CarAlreadyExistsException(car.getCarBrand(), car.getCarModel());
+        }
         Car saved=carRepository.save(car);
         log.info("Added New Car with id:{}",saved.getCarId());
         return saved;
@@ -75,17 +99,15 @@ public class CarService {
     public void deleteCar(Integer carId){
         log.info("Attempting to delete car with id: {}", carId);
 
-        if (!carRepository.existsById(carId)) {
-            log.warn("Car with id:{} not found", carId);
-            throw new CarNotFoundException(carId);
-        }
+        Car car = carRepository.findById(carId)
+                .orElseThrow(() -> new CarNotFoundException(carId));
 
-        if(!carRepository.existsByCarIdAndAvailableTrue(carId)){
-            log.error("Car With Id:{} is Rented, cannot delete",carId);
+        if (!car.getAvailable()) {
             throw new CarNotAvailableException(carId);
         }
-        carRepository.deleteById(carId);
-        log.info("Car With Id:{} is deleted",carId);
+
+        carRepository.delete(car);
+        log.info("Car with id:{} deleted successfully", carId);
     }
 
     //10.EDIT CAR DETAILS
@@ -103,7 +125,9 @@ public class CarService {
                     if(updatedDetails.getCarRentPerDay()!=null){
                         existingDetails.setCarRentPerDay(updatedDetails.getCarRentPerDay());
                     }
-                    existingDetails.setAvailable(updatedDetails.getAvailable());
+                    if (updatedDetails.getAvailable() != null) {
+                        existingDetails.setAvailable(updatedDetails.getAvailable());
+                    }
 
                     Car saved=carRepository.save(existingDetails);
                     log.info("Car with id:{} updated successfully", saved.getCarId());

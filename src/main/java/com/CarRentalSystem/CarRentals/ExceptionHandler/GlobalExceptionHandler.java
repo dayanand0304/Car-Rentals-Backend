@@ -1,5 +1,6 @@
 package com.CarRentalSystem.CarRentals.ExceptionHandler;
 
+import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarAlreadyExistsException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotAvailableException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotFoundException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
@@ -30,6 +31,7 @@ public class GlobalExceptionHandler {
         );
     }
 
+    //400: Bad Request
     @ExceptionHandler({
             DurationException.class,
             RentalTypeException.class
@@ -43,11 +45,12 @@ public class GlobalExceptionHandler {
         );
     }
 
+    //409: Conflict
     @ExceptionHandler({
             CarNotAvailableException.class,
             AlreadyReturnedException.class,
-            CannotCancelException.class
-
+            CannotCancelException.class,
+            CarAlreadyExistsException.class
     })
     public ResponseEntity<ErrorResponse> handleConflict(RuntimeException ex,
                                                         HttpServletRequest request){
@@ -58,6 +61,7 @@ public class GlobalExceptionHandler {
         );
     }
 
+    //500: Internal Server Error
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex,

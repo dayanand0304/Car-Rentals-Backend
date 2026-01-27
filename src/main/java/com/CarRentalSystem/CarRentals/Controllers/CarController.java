@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-//getting 500 instead of 400 for getcarbyid and deletecar method sol:create custom exception
 @RestController
 @RequestMapping("/car")
 @RequiredArgsConstructor
