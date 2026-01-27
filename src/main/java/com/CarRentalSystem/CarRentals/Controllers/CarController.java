@@ -15,107 +15,95 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/car")
+@RequestMapping("/cars")
 @RequiredArgsConstructor
 public class CarController {
 
-
     private final CarService carService;
 
-    //1.GET CAR DETAILS
-    @GetMapping("/get-all")
-    public ResponseEntity<List<CarResponse>> getAllCars(){
-        List<CarResponse> cars=carService.getAllCars()
-                .stream()
-                .map(CarMapper::response)
-                .toList();
-        return ResponseEntity.ok(cars);
-    }
-
-    //2.GET CAR DETAILS BY ID
-    @GetMapping("/get-car/{carId}")
-    public ResponseEntity<CarResponse> getCarById(@PathVariable Integer carId){
-        Car car=carService.getCarById(carId);
-        return ResponseEntity.ok(CarMapper.response(car));
-    }
-
-    //3.GET AVAILABLE CARS
-    @GetMapping("/get-available-cars")
-    public ResponseEntity<List<CarResponse>> getAvailableCars(){
-        List<CarResponse> cars=carService.getAvailableCars()
-                .stream()
-                .map(CarMapper::response)
-                .toList();
-        return ResponseEntity.ok(cars);
-    }
-
-    //4.GET CARS BY BRAND
-    @GetMapping("/car-brand/{carBrand}")
-    public ResponseEntity<List<CarResponse>> getCarsByBrand(@PathVariable String carBrand){
-        List<CarResponse> cars=carService.carListByBrand(carBrand)
-                .stream()
-                .map(CarMapper::response)
-                .toList();
-        return ResponseEntity.ok(cars);
-    }
-
-    //5.GET AVAILABLE CARS BY CAR BRAND
-    @GetMapping("/car-brand-available/{carBrand}")
-    public ResponseEntity<List<CarResponse>> getAvailableCarsByBrand(@PathVariable String carBrand){
-        List<CarResponse> cars=carService.getAvailableCarsByCarBrand(carBrand)
-                .stream()
-                .map(CarMapper::response)
-                .toList();
-        return ResponseEntity.ok(cars);
-    }
-
-    //6.GET CAR DETAILS BY CAR BRAND OR  MODEL
-    @GetMapping("/search")
-    public ResponseEntity<List<CarResponse>> getCarsByBrandAndModel(
+    /**
+     * GET /cars
+     * Supports filtering by brand, model, availability
+     *
+     * Examples:
+     * /cars
+     * /cars?brand=BMW
+     * /cars?brand=BMW&model=X5
+     * /cars?available=true
+     * /cars?brand=BMW&available=true
+     */
+    @GetMapping
+    public ResponseEntity<List<CarResponse>> getCars(
             @RequestParam(required = false) String brand,
-            @RequestParam(required = false) String model) {
+            @RequestParam(required = false) String model,
+            @RequestParam(required = false) Boolean available
+    ) {
 
         List<Car> cars;
+
         if (brand != null && model != null) {
-            cars=carService.carListByBrandAndModel(brand,model);
-        }else if(brand!=null){
-            cars=carService.carListByBrand(brand);
-        }else {
-            return ResponseEntity.badRequest().build();
+            cars = carService.carListByBrandAndModel(brand, model);
+
+        } else if (brand != null && Boolean.TRUE.equals(available)) {
+            cars = carService.getAvailableCarsByCarBrand(brand);
+
+        } else if (brand != null) {
+            cars = carService.carListByBrand(brand);
+
+        } else if (Boolean.TRUE.equals(available)) {
+            cars = carService.getAvailableCars();
+
+        } else {
+            cars = carService.getAllCars();
         }
-        return ResponseEntity.ok(cars.stream()
-                .map(CarMapper::response).toList());
+
+        return ResponseEntity.ok(
+                cars.stream()
+                        .map(CarMapper::response)
+                        .toList()
+        );
     }
 
-    //7.CHECK IF CAR IS AVAILABLE OR NOT
-    @GetMapping("/available/{carId}")
-    public ResponseEntity<Boolean> isAvailable(@PathVariable Integer carId){
-        Boolean car=carService.isAvailable(carId);
-        return ResponseEntity.ok(car);
+    // GET CAR BY ID
+    @GetMapping("/{carId}")
+    public ResponseEntity<CarResponse> getCarById(@PathVariable Integer carId) {
+        return ResponseEntity.ok(
+                CarMapper.response(carService.getCarById(carId))
+        );
     }
 
-    //8.ADD CAR
-    @PostMapping("/add-car")
-    public ResponseEntity<CarResponse> addCar(@Valid @RequestBody CarCreateRequest car){
-        Car newCar=CarMapper.create(car);
-        Car saved=carService.addCar(newCar);
+    // CHECK AVAILABILITY
+    @GetMapping("/{carId}/availability")
+    public ResponseEntity<Boolean> isAvailable(@PathVariable Integer carId) {
+        return ResponseEntity.ok(carService.isAvailable(carId));
+    }
+
+    // ADD CAR
+    @PostMapping
+    public ResponseEntity<CarResponse> addCar(
+            @Valid @RequestBody CarCreateRequest request) {
+
+        Car saved = carService.addCar(CarMapper.create(request));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(CarMapper.response(saved));
     }
 
-    //9.DELETE CAR
-    @DeleteMapping("/delete-car/{carId}")
-    public ResponseEntity<Void> deleteCar(@PathVariable Integer carId){
-        carService.deleteCar(carId);
-        return ResponseEntity.noContent().build();
+    // UPDATE CAR
+    @PutMapping("/{carId}")
+    public ResponseEntity<CarResponse> updateCar(
+            @PathVariable Integer carId,
+            @RequestBody CarUpdateRequest request) {
+
+        Car updated = carService.updateCarDetails(
+                carId, CarMapper.update(request));
+
+        return ResponseEntity.ok(CarMapper.response(updated));
     }
 
-    //10.EDIT CAR DETAILS
-    @PutMapping("/update-car/{carId}")
-    public ResponseEntity<CarResponse> updateCarDetails(@PathVariable Integer carId,
-                                                        @RequestBody CarUpdateRequest car){
-        Car update=CarMapper.update(car);
-        Car updated=carService.updateCarDetails(carId,update);
-        return ResponseEntity.ok(CarMapper.response(updated));
+    // DELETE CAR
+    @DeleteMapping("/{carId}")
+    public ResponseEntity<Void> deleteCar(@PathVariable Integer carId) {
+        carService.deleteCar(carId);
+        return ResponseEntity.noContent().build();
     }
 }

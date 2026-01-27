@@ -17,6 +17,4 @@ public interface CarRepository extends JpaRepository<Car,Integer> {
     List<Car> findByAvailableTrue();
 
     List<Car> findByCarBrandAndAvailableTrue(String carBrand);
-
-    boolean existsByCarBrandAndCarModel(String brand,String model);
 }
