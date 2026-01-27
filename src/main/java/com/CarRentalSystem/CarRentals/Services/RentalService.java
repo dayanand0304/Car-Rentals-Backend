@@ -50,13 +50,21 @@ public class RentalService {
     //3.GET RENTALS BY CUSTOMER ID
     public List<Rental> getRentalsByCustomerId(Integer customerId){
         log.info("Fetching All Rentals By Customer Id:{}",customerId);
-        return rentalRepository.findByCustomerCustomerId(customerId);
+        List<Rental> rentals=rentalRepository.findByCustomerCustomerId(customerId);
+        if(rentals.isEmpty()){
+            throw new RentalNotFoundByCustomerIdException(customerId);
+        }
+        return rentals;
     }
 
     //4.GET RENTALS BY CAR ID
     public List<Rental> getRentalByCarId(Integer carId){
         log.info("Fetching All Rentals By Car Id:{}",carId);
-        return rentalRepository.findByCarCarId(carId);
+        List<Rental> rentals=rentalRepository.findByCarCarId(carId);
+        if(rentals.isEmpty()){
+            throw new RentalNotFoundByCarIdException(carId);
+        }
+        return rentals;
     }
 
     //5.GET RENTALS BY STATUS
@@ -145,7 +153,6 @@ public class RentalService {
             case DAILY ->
                     BigDecimal.valueOf(car.getCarRentPerDay())
                             .multiply(BigDecimal.valueOf(duration));
-
             case HOURLY -> {
                 BigDecimal hourlyRate =
                         BigDecimal.valueOf(car.getCarRentPerDay())
