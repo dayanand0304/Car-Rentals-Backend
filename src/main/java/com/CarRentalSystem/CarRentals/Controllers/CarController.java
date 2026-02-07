@@ -5,6 +5,8 @@ import com.CarRentalSystem.CarRentals.DTO.Request.CarCreateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Request.CarUpdateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Response.CarResponse;
 import com.CarRentalSystem.CarRentals.Entities.Car;
+import com.CarRentalSystem.CarRentals.Enums.FuelType;
+import com.CarRentalSystem.CarRentals.Enums.SeatType;
 import com.CarRentalSystem.CarRentals.Services.CarService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,19 +38,27 @@ public class CarController {
     public ResponseEntity<List<CarResponse>> getCars(
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String model,
+            @RequestParam(required = false) FuelType fuelType,
+            @RequestParam(required = false) SeatType seats,
             @RequestParam(required = false) Boolean available
     ) {
 
-        List<Car> cars;
+        List<CarResponse> cars;
 
         if (brand != null && model != null) {
-            cars = carService.carListByBrandAndModel(brand, model);
+            cars = carService.getCarsByBrandAndModel(brand,model);
 
         } else if (brand != null && Boolean.TRUE.equals(available)) {
-            cars = carService.getAvailableCarsByCarBrand(brand);
+            cars = carService.getCarsByBrandAndAvailableTrue(brand);
 
         } else if (brand != null) {
-            cars = carService.carListByBrand(brand);
+            cars = carService.getCarsByBrand(brand);
+
+        }else if(fuelType!=null){
+            cars = carService.getCarsByFuelType(fuelType);
+
+        }else if(seats!=null){
+            cars= carService.getCarsBySeatType(seats);
 
         } else if (Boolean.TRUE.equals(available)) {
             cars = carService.getAvailableCars();
@@ -57,47 +67,60 @@ public class CarController {
             cars = carService.getAllCars();
         }
 
-        return ResponseEntity.ok(
-                cars.stream()
-                        .map(CarMapper::response)
-                        .toList()
-        );
+        return ResponseEntity.ok(cars);
     }
 
-    // GET CAR BY ID
+
+
+    //GET CAR BY ID
     @GetMapping("/{carId}")
     public ResponseEntity<CarResponse> getCarById(@PathVariable Integer carId) {
-        return ResponseEntity.ok(
-                CarMapper.response(carService.getCarById(carId))
-        );
+        return ResponseEntity.ok(carService.getCarById(carId));
     }
 
-    // CHECK AVAILABILITY
-    @GetMapping("/{carId}/availability")
-    public ResponseEntity<Boolean> isAvailable(@PathVariable Integer carId) {
+    //GET CAR BY ID
+    @GetMapping("/active/{carId}")
+    public ResponseEntity<CarResponse> getActiveCarById(@PathVariable Integer carId) {
+        return ResponseEntity.ok(carService.getActiveCarById(carId));
+    }
+
+    //CHECK AVAILABILITY OF CAR BY CAR ID
+    @GetMapping("/{carId}/available")
+    public ResponseEntity<Boolean> isAvailable(@PathVariable Integer carId){
         return ResponseEntity.ok(carService.isAvailable(carId));
+    }
+
+    //GET CARS BY PRICE RANGE
+    @GetMapping("/price-range")
+    public ResponseEntity<List<CarResponse>> getsCarsByPriceRange(@RequestParam Integer min,
+                                                                  @RequestParam Integer max){
+        return ResponseEntity.ok(carService.getCarsByPriceRange(min,max));
+    }
+
+    //GET CAR BY REGISTRATION NUMBER
+    @GetMapping("/register-number")
+    public ResponseEntity<CarResponse> getCarByRegisterNum(@RequestParam String number){
+        return ResponseEntity.ok(carService.getCarByRegisterNum(number));
+    }
+
+    //GET CARS BY LAST FOUR DIGITS OF REGISTER NUMBER
+    @GetMapping("/four-digits")
+    public ResponseEntity<List<CarResponse>> getCarsByLastFourDigits(@RequestParam String number){
+        return ResponseEntity.ok(carService.getCarsByLastRegisterNum(number));
+    }
+
+    //GET CARS BY ACTIVE
+    @GetMapping("/active")
+    public ResponseEntity<List<CarResponse>> getCarsByActive(@RequestParam Boolean active){
+        return ResponseEntity.ok(carService.getCarsByActive(active));
     }
 
     // ADD CAR
     @PostMapping
     public ResponseEntity<CarResponse> addCar(
             @Valid @RequestBody CarCreateRequest request) {
-
-        Car saved = carService.addCar(CarMapper.create(request));
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(CarMapper.response(saved));
-    }
-
-    // UPDATE CAR
-    @PutMapping("/{carId}")
-    public ResponseEntity<CarResponse> updateCar(
-            @PathVariable Integer carId,
-            @RequestBody CarUpdateRequest request) {
-
-        Car updated = carService.updateCarDetails(
-                carId, CarMapper.update(request));
-
-        return ResponseEntity.ok(CarMapper.response(updated));
+                .body(carService.addCar(request));
     }
 
     // DELETE CAR
@@ -106,4 +129,14 @@ public class CarController {
         carService.deleteCar(carId);
         return ResponseEntity.noContent().build();
     }
+
+    // UPDATE CAR
+    @PutMapping("/{carId}")
+    public ResponseEntity<CarResponse> updateCar(
+            @PathVariable Integer carId,
+            @RequestBody CarUpdateRequest request) {
+
+        return ResponseEntity.ok(carService.updateCarDetails(carId,request));
+    }
+
 }

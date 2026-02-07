@@ -1,6 +1,7 @@
 package com.CarRentalSystem.CarRentals.ExceptionHandler;
 
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarAlreadyExistsException;
+import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotActiveException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotAvailableException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotFoundException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
@@ -44,6 +45,17 @@ public class GlobalExceptionHandler {
                                                           HttpServletRequest request){
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
+    //410: GONE
+    @ExceptionHandler(CarNotActiveException.class)
+    public ResponseEntity<ErrorResponse> handleGone(RuntimeException ex,
+                                                    HttpServletRequest request){
+        return buildErrorResponse(
+                HttpStatus.GONE,
                 ex.getMessage(),
                 request.getRequestURI()
         );

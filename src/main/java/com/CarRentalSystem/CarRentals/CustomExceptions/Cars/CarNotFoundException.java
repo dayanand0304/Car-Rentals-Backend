@@ -10,7 +10,7 @@ public class CarNotFoundException extends RuntimeException{
     }
 
     public CarNotFoundException(String brand){
-        super("Car with Brand Name: "+brand+" Not found");
+        super("Car not found with brand: "+brand);
     }
 
     public CarNotFoundException(){

@@ -2,7 +2,6 @@ package com.CarRentalSystem.CarRentals.Entities;
 
 import com.CarRentalSystem.CarRentals.Enums.BookingStatus;
 import com.CarRentalSystem.CarRentals.Enums.RentalType;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

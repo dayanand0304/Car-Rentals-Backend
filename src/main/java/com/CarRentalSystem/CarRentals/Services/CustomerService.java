@@ -1,11 +1,14 @@
 package com.CarRentalSystem.CarRentals.Services;
 
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
+import com.CarRentalSystem.CarRentals.DTO.CustomerMapper;
+import com.CarRentalSystem.CarRentals.DTO.Response.CustomerResponse;
 import com.CarRentalSystem.CarRentals.Entities.Customer;
 import com.CarRentalSystem.CarRentals.Repositories.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,9 +21,12 @@ public class CustomerService {
 
 
     //1.GET ALL CUSTOMERS
-    public List<Customer> getAllCustomers(){
+    public List<CustomerResponse> getAllCustomers(){
         log.info("Fetching All Customers");
-        return customerRepository.findAll();
+        return customerRepository.findAll()
+                .stream()
+                .map(CustomerMapper::response)
+                .toList();
     }
 
     //2.GET CUSTOMER BY CUSTOMER ID
@@ -33,7 +39,7 @@ public class CustomerService {
     //3.GET CUSTOMER BY CUSTOMER NAME BY CASE-INSENSITIVE
     public List<Customer> getCustomerByName(String customerName){
         log.info("Fetching All Customers By Customer Name:{}",customerName);
-        List<Customer> customers=customerRepository.findByCustomerNameIgnoreCase(customerName);
+        List<Customer> customers=customerRepository.findByCustomerNameContainingIgnoreCase(customerName);
         if(customers.isEmpty()){
             throw new CustomerNotFoundException(customerName);
         }
@@ -69,6 +75,7 @@ public class CustomerService {
     }
 
     //7.UPDATE CUSTOMER DETAILS BY CUSTOMER ID
+    @Transactional
     public Customer updateCustomer(Integer customerId,Customer updated){
         log.info("Updating Customer with id: {}", customerId);
         Customer existing=getCustomerById(customerId);

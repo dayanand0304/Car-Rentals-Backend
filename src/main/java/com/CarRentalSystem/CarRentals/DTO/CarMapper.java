@@ -10,16 +10,20 @@ public class CarMapper {
         Car car=new Car();
         car.setCarBrand(request.getCarBrand());
         car.setCarModel(request.getCarModel());
+        car.setRegistrationNumber(request.getRegistrationNumber());
+        car.setFuelType(request.getFuelType());
+        car.setSeats(request.getSeats());
         car.setCarRentPerDay(request.getCarRentPerDay());
         return car;
     }
 
-    public static Car update(CarUpdateRequest request) {
-        Car car = new Car();
+    public static void update(Car car,CarUpdateRequest request) {
         car.setCarBrand(request.getCarBrand());
         car.setCarModel(request.getCarModel());
+        car.setRegistrationNumber(request.getRegistrationNumber().toUpperCase());
+        car.setFuelType(request.getFuelType());
+        car.setSeats(request.getSeats());
         car.setCarRentPerDay(request.getCarRentPerDay());
-        return car;
     }
 
     public static CarResponse response(Car car){
@@ -27,6 +31,9 @@ public class CarMapper {
                 car.getCarId(),
                 car.getCarBrand(),
                 car.getCarModel(),
+                car.getRegistrationNumber(),
+                car.getFuelType(),
+                car.getSeats(),
                 car.getCarRentPerDay(),
                 car.getAvailable()
         );
