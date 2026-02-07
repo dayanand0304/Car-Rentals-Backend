@@ -8,14 +8,17 @@ public class RentalMapper {
         return new RentalResponse(
                 rental.getRentalId(),
                 rental.getCar().getCarId(),
+                rental.getCar().getCarModel(),
                 rental.getCustomer().getCustomerId(),
+                rental.getCustomer().getCustomerName(),
                 rental.getRentalType(),
                 rental.getDuration(),
-                rental.getTotalPrice(),
-                rental.getStatus(),
                 rental.getStartTime(),
                 rental.getExpectedReturnTime(),
-                rental.getActualReturnTime()
+                rental.getStatus(),
+                rental.isDamaged(),
+                rental.getLateFee(),
+                rental.getTotalPrice()
         );
     }
 }

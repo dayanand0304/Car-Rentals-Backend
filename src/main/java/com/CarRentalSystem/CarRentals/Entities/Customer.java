@@ -42,8 +42,5 @@ public class Customer {
     @Column(nullable = false)
     private boolean active=true;
 
-    @OneToMany(mappedBy="customer",
-            fetch = FetchType.LAZY)
-    private List<Rental> rentals;
     private LocalDateTime deletedAt;
 }

@@ -4,6 +4,7 @@ import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarAlreadyExistsExce
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotActiveException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotAvailableException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotFoundException;
+import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerAlreadyExistsException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Rentals.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -81,7 +82,9 @@ public class GlobalExceptionHandler {
     //409: Conflict
     @ExceptionHandler({
             CarNotAvailableException.class,
-            AlreadyReturnedException.class,
+            RentalAlreadyReturnedException.class,
+            RentalAlreadyCancelledException.class,
+            CustomerAlreadyExistsException.class,
             CannotCancelException.class,
             CarAlreadyExistsException.class
     })

@@ -16,16 +16,18 @@ import java.time.LocalDateTime;
 public class RentalResponse {
     private Integer rentalId;
     private Integer carId;
+    private String carModel;
     private Integer customerId;
-
+    private String customerName;
     private RentalType rentalType;
     private Integer duration;
 
-    private BigDecimal totalPrice;
-    private BookingStatus status;
-
     private LocalDateTime startTime;
     private LocalDateTime expectedReturnTime;
-    private LocalDateTime actualReturnTime;
+
+    private BookingStatus status;
+    private boolean damaged;
+    private BigDecimal lateFee;
+    private BigDecimal totalPrice;
 
 }

@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Rental_List")
+@Table(name = "rental_list")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -31,6 +31,7 @@ public class Rental {
     @JoinColumn(name = "customer_id",nullable = false)
     private Customer customer;
 
+    @Column(nullable = false)
     private Integer duration;
 
     @Column(precision = 9,scale = 2,nullable = false)
@@ -40,11 +41,19 @@ public class Rental {
     @Column(nullable = false)
     private RentalType rentalType;
 
+    @Column(nullable = false)
     private LocalDateTime startTime;
+
     private LocalDateTime expectedReturnTime;
+
     private LocalDateTime actualReturnTime;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BookingStatus status= BookingStatus.PENDING;
+
+    private BigDecimal lateFee;
+
+    private boolean damaged;
+
 }

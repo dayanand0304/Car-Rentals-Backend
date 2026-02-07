@@ -4,6 +4,8 @@ import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotAvailableExcep
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotFoundException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Rentals.*;
+import com.CarRentalSystem.CarRentals.DTO.RentalMapper;
+import com.CarRentalSystem.CarRentals.DTO.Response.RentalResponse;
 import com.CarRentalSystem.CarRentals.Enums.BookingStatus;
 import com.CarRentalSystem.CarRentals.Enums.RentalType;
 import com.CarRentalSystem.CarRentals.Entities.Car;
@@ -35,53 +37,96 @@ public class RentalService {
 
 
     //1.GET ALL RENTALS
-    public List<Rental> getAllRentals(){
+    public List<RentalResponse> getAllRentals(){
         log.info("Fetching All Rentals");
-        return rentalRepository.findAll();
+        return rentalRepository.findAll()
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
     }
 
     //2.GET RENTAL BY ID
-    public Rental getRentalByRentalId(Integer rentalId){
+    public RentalResponse getRentalByRentalId(Integer rentalId){
         log.info("Fetching All Rentals By Rental Id:{}",rentalId);
-        return rentalRepository.findById(rentalId)
+        Rental rental=rentalRepository.findById(rentalId)
                 .orElseThrow(()->new RentalNotFoundException(rentalId));
+
+        return RentalMapper.response(rental);
     }
 
     //3.GET RENTALS BY CUSTOMER ID
-    public List<Rental> getRentalsByCustomerId(Integer customerId){
+    public List<RentalResponse> getRentalsByCustomerId(Integer customerId){
         log.info("Fetching All Rentals By Customer Id:{}",customerId);
-        List<Rental> rentals=rentalRepository.findByCustomerCustomerId(customerId);
-        if(rentals.isEmpty()){
-            throw new RentalNotFoundByCustomerIdException(customerId);
-        }
-        return rentals;
+        return rentalRepository.findByCustomerCustomerId(customerId)
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
     }
 
     //4.GET RENTALS BY CAR ID
-    public List<Rental> getRentalByCarId(Integer carId){
+    public List<RentalResponse> getRentalByCarId(Integer carId){
         log.info("Fetching All Rentals By Car Id:{}",carId);
-        List<Rental> rentals=rentalRepository.findByCarCarId(carId);
-        if(rentals.isEmpty()){
-            throw new RentalNotFoundByCarIdException(carId);
-        }
-        return rentals;
+        return rentalRepository.findByCarCarId(carId)
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
     }
 
     //5.GET RENTALS BY STATUS
-    public List<Rental> getRentalByStatus(BookingStatus status){
+    public List<RentalResponse> getRentalByStatus(BookingStatus status){
         log.info("Fetching All Rentals By status:{}",status);
-        return rentalRepository.findByStatus(status);
+        return rentalRepository.findByStatus(status)
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
+    }
+
+    //GET RENTALS BY RENTAL TYPE
+    public List<RentalResponse> getRentalsByRentalType(RentalType rentalType){
+        return rentalRepository.findByRentalType(rentalType)
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
+    }
+
+    //GET ALL DAMAGED RENTALS
+    public List<RentalResponse> getRentalsOfDamaged(){
+        return rentalRepository.findByDamagedTrue()
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
+    }
+
+    //GET OVER DUES RENTALS
+    public List<RentalResponse> getAllOverdueRentals(){
+        LocalDateTime now=LocalDateTime.now();
+        return rentalRepository.findByActualReturnTimeIsNullAndExpectedReturnTimeBefore(now)
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
     }
 
     //6.FIND BY CUSTOMER ID AND STATUS
-    public List<Rental> getRentalByCustomerIdAndStatus(Integer customerId,BookingStatus status){
+    public List<RentalResponse> getRentalByCustomerIdAndStatus(Integer customerId,BookingStatus status){
         log.info("Fetching All Rentals By Customer Id:{} With {}",customerId,status);
-        return rentalRepository.findByCustomerCustomerIdAndStatus(customerId,status);
+        return rentalRepository.findByCustomerCustomerIdAndStatus(customerId,status)
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
+    }
+
+    //6.FIND BY CAR ID AND STATUS
+    public List<RentalResponse> getRentalByCarIdAndStatus(Integer carId,BookingStatus status){
+        log.info("Fetching All Rentals By Customer Id:{} With {}",carId,status);
+        return rentalRepository.findByCarCarIdAndStatus(carId,status)
+                .stream()
+                .map(RentalMapper::response)
+                .toList();
     }
 
     //7.RENT A CAR
     @Transactional
-    public Rental rentACar(Integer carId,
+    public RentalResponse rentACar(Integer carId,
                            Integer customerId,
                            RentalType rentalType,
                            Integer duration){
@@ -100,6 +145,10 @@ public class RentalService {
                     log.error("Customer With Id {} Not Found",customerId);
                     return new CustomerNotFoundException(customerId);
                 });
+
+        if(!customer.isActive()){
+            throw new CustomerNotFoundException(customerId);
+        }
 
         log.info("Fetching Car With Id:{}",carId);
         Car car=carRepository.findById(carId)
@@ -121,25 +170,27 @@ public class RentalService {
         rental.setCar(car);
         rental.setCustomer(customer);
         rental.setRentalType(rentalType);
-        car.setAvailable(false);
-        rental.setStatus(BookingStatus.CONFIRMED);
+        rental.setDuration(duration);
+
+
         rental.setStartTime(LocalDateTime.now());
+        rental.setStatus(BookingStatus.CONFIRMED);
 
         if(rentalType==RentalType.DAILY){
-            rental.setDuration(duration);
             rental.setExpectedReturnTime(rental.getStartTime().plusDays(duration));
         }else{
-            rental.setDuration(duration);
             rental.setExpectedReturnTime(rental.getStartTime().plusHours(duration));
         }
-        BigDecimal totalPrice=calculatePrice(car,rentalType,duration);
 
+        BigDecimal totalPrice=calculatePrice(car,rentalType,duration);
         rental.setTotalPrice(totalPrice);
+
+        car.setAvailable(false);
         carRepository.save(car);
 
         Rental saved=rentalRepository.save(rental);
         log.info("Rental Created With RentalId:{}",saved.getRentalId());
-        return saved;
+        return RentalMapper.response(saved);
     }
 
     //FOR CALCULATING PRICE FOR RENTAL
@@ -165,7 +216,7 @@ public class RentalService {
 
     //8.RETURN A CAR
     @Transactional
-    public Rental returnACar(Integer rentalId){
+    public RentalResponse returnACar(Integer rentalId){
         log.info("Fetching Rental With Rental Id:{}",rentalId);
         Rental rental=rentalRepository.findById(rentalId)
                 .orElseThrow(()->{
@@ -173,11 +224,15 @@ public class RentalService {
                     return new RentalNotFoundException(rentalId);
                 });
 
-        if (rental.getActualReturnTime() != null) {
-            throw new AlreadyReturnedException();
+        if (rental.getStatus() == BookingStatus.CANCELLED) {
+            throw new RentalAlreadyCancelledException();
         }
-        Car car=rental.getCar();
 
+        if (rental.getActualReturnTime() != null) {
+            throw new RentalAlreadyReturnedException();
+        }
+
+        Car car=rental.getCar();
         LocalDateTime now=LocalDateTime.now();
         rental.setActualReturnTime(now);
 
@@ -185,7 +240,7 @@ public class RentalService {
         BigDecimal totalPrice=rental.getTotalPrice();
 
         if(now.isAfter(expected)){
-            long extraHours= ChronoUnit.HOURS.between(expected,now);
+            long extraHours= Math.max(1,ChronoUnit.HOURS.between(expected,now));
 
             BigDecimal rentPerHour= BigDecimal.valueOf(car.getCarRentPerDay())
                     .divide(BigDecimal.valueOf(24),2,RoundingMode.HALF_UP);
@@ -195,6 +250,7 @@ public class RentalService {
             BigDecimal extraCost= rentPerHour.add(fineHour)
                     .multiply(BigDecimal.valueOf(extraHours));
 
+            rental.setLateFee(extraCost);
             totalPrice=totalPrice.add(extraCost);
 
             log.info("Late return for rentalId:{} extraHours:{} extraCost:{}", rentalId, extraHours, extraCost);
@@ -208,12 +264,12 @@ public class RentalService {
 
         Rental saved=rentalRepository.save(rental);
         log.info("Rental with id:{} updated on return", saved.getRentalId());
-        return saved;
+        return RentalMapper.response(saved);
     }
 
     //9.CANCEL A CAR
     @Transactional
-    public String cancelCar(Integer rentalId){
+    public void cancelCar(Integer rentalId){
         log.info("Fetching Rental With Rental Id:{}",rentalId);
         Rental rental=rentalRepository.findById(rentalId)
                 .orElseThrow(()->{
@@ -221,24 +277,23 @@ public class RentalService {
                     return new RentalNotFoundException(rentalId);
                 });
 
-        if(rental.getActualReturnTime()!=null){
-            log.warn("Request To Cancel After Return for RentalId:{}",rentalId);
+        if(rental.getStatus()==BookingStatus.CANCELLED){
             throw new CannotCancelException();
         }
+
+        if(rental.getStatus()==BookingStatus.COMPLETED){
+            throw new CannotCancelException();
+        }
+
         Car car=rental.getCar();
         car.setAvailable(true);
+
         rental.setStatus(BookingStatus.CANCELLED);
+
         carRepository.save(car);
 
         log.info("Car With Id:{} Marked as Available and Saved",car.getCarId());
         rentalRepository.save(rental);
         log.info("Car With Id:{} Cancelled",rentalId);
-        return "Rental Cancelled";
-    }
-
-    //10.GET OVER DUES RENTALS
-    public List<Rental> getAllOverdueRentals(){
-        LocalDateTime now=LocalDateTime.now();
-        return rentalRepository.findByActualReturnTimeIsNullAndExpectedReturnTimeBefore(now);
     }
 }
