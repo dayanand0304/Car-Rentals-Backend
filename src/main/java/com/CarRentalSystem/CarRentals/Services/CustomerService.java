@@ -1,15 +1,20 @@
 package com.CarRentalSystem.CarRentals.Services;
 
+import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerAlreadyExistsException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
 import com.CarRentalSystem.CarRentals.DTO.CustomerMapper;
+import com.CarRentalSystem.CarRentals.DTO.Request.CustomerCreateRequest;
+import com.CarRentalSystem.CarRentals.DTO.Request.CustomerUpdateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Response.CustomerResponse;
 import com.CarRentalSystem.CarRentals.Entities.Customer;
+import com.CarRentalSystem.CarRentals.Enums.Role;
 import com.CarRentalSystem.CarRentals.Repositories.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -29,68 +34,132 @@ public class CustomerService {
                 .toList();
     }
 
+
+
     //2.GET CUSTOMER BY CUSTOMER ID
-    public Customer getCustomerById(Integer customerId){
+    public CustomerResponse getCustomerById(Integer customerId){
         log.info("Fetching All Customers By Id:{}",customerId);
-        return customerRepository.findById(customerId)
+        Customer customer=customerRepository.findById(customerId)
                 .orElseThrow(()->new CustomerNotFoundException(customerId));
+
+        return CustomerMapper.response(customer);
     }
 
-    //3.GET CUSTOMER BY CUSTOMER NAME BY CASE-INSENSITIVE
-    public List<Customer> getCustomerByName(String customerName){
+    //3.GET CUSTOMERS BY CUSTOMER NAME CONTAINING
+    public List<CustomerResponse> getCustomersByName(String customerName){
         log.info("Fetching All Customers By Customer Name:{}",customerName);
-        List<Customer> customers=customerRepository.findByCustomerNameContainingIgnoreCase(customerName);
-        if(customers.isEmpty()){
-            throw new CustomerNotFoundException(customerName);
-        }
-        return customers;
+        return customerRepository.findByCustomerNameContainingIgnoreCase(customerName)
+                .stream()
+                .map(CustomerMapper::response)
+                .toList();
     }
 
-    //4.GET CUSTOMER BY PARTIAL CONTAINING AND CASE-INSENSITIVE SEARCH
-    public List<Customer> searchCustomers(String keyword){
-        log.info("Fetching All Customers By keyword ");
-        List<Customer> customers=customerRepository.findByCustomerNameContainingIgnoreCaseOrCustomerEmailContainingIgnoreCaseOrCustomerPhoneNoContaining(
-                        keyword,keyword,keyword);
-        if(customers.isEmpty()){
-            throw new CustomerNotFoundException();
-        }
-        return customers;
+    //GET CUSTOMER BY CUSTOMER PHONE NO
+    public CustomerResponse getCustomerByPhoneNo(String number){
+        Customer customer=customerRepository.findByCustomerPhoneNo(number)
+                .orElseThrow(()->new CustomerNotFoundException("Customer with Phone No: "+number+" not found"));
+
+        return CustomerMapper.response(customer);
+    }
+
+    //GET CUSTOMERS BY CUSTOMER PHONE NO CONTAINING
+    public List<CustomerResponse> getCustomersByPhoneNoContaining(String number){
+        return customerRepository.findByCustomerPhoneNoContaining(number)
+                .stream()
+                .map(CustomerMapper::response)
+                .toList();
+    }
+
+    //GET CUSTOMER BY EMAIL
+    public CustomerResponse getCustomerByEmail(String mail){
+        Customer customer=customerRepository.findByCustomerEmailIgnoreCase(mail)
+                .orElseThrow(()->new CustomerNotFoundException("Customer with email: "+mail+" not found"));
+
+        return CustomerMapper.response(customer);
+    }
+
+    //GET CUSTOMERS BY ROLE
+    public List<CustomerResponse> getCustomersByRole(Role role){
+        return customerRepository.findByRole(role)
+                .stream()
+                .map(CustomerMapper::response)
+                .toList();
+    }
+
+    //GET CUSTOMERS BY ACTIVE
+    public List<CustomerResponse> getCustomersByActive(boolean active){
+        return customerRepository.findByActive(active)
+                .stream()
+                .map(CustomerMapper::response)
+                .toList();
     }
 
     //5.ADD CUSTOMER
-    public Customer addCustomer(Customer customer){
+    public CustomerResponse addCustomer(CustomerCreateRequest request){
+
+        Customer customer=CustomerMapper.create(request);
+
         log.info("Adding Customers With Name:{} and Email:{}",customer.getCustomerName(),customer.getCustomerEmail());
+
+        if(customerRepository.existsByCustomerEmail(customer.getCustomerEmail()) ||
+                customerRepository.existsByCustomerPhoneNo(customer.getCustomerPhoneNo())){
+            throw new CustomerAlreadyExistsException();
+        }
+        if(request.getRole()==null){
+            customer.setRole(Role.CUSTOMER);
+        }else{
+            customer.setRole(request.getRole());
+        }
         Customer saved=customerRepository.save(customer);
         log.info("Added Customer With Id:{}",saved.getCustomerId());
-        return saved;
+
+        return CustomerMapper.response(saved);
     }
 
     //6.DELETE CUSTOMER BY CUSTOMER ID
+    @Transactional
     public void deleteCustomer(Integer customerId){
         log.info("Attempting to delete customer with id: {}", customerId);
         Customer customer=customerRepository.findById(customerId)
                         .orElseThrow(()->new CustomerNotFoundException(customerId));
-        customerRepository.delete(customer);
-        log.info("Customer With Id:{} is Deleted", customerId);
+
+        customer.setActive(false);
+        customer.setDeletedAt(LocalDateTime.now());
+
+        customerRepository.save(customer);
     }
 
     //7.UPDATE CUSTOMER DETAILS BY CUSTOMER ID
     @Transactional
-    public Customer updateCustomer(Integer customerId,Customer updated){
+    public CustomerResponse updateCustomer(Integer customerId, CustomerUpdateRequest request){
         log.info("Updating Customer with id: {}", customerId);
-        Customer existing=getCustomerById(customerId);
+        return customerRepository.findById(customerId)
+                .map(existing->{
+                    if(!existing.isActive()){
+                        throw new CustomerNotFoundException(customerId);
+                    }
+                    if(request.getCustomerName()!=null){
+                        existing.setCustomerName(request.getCustomerName());
+                    }
+                    if(request.getCustomerPhoneNo()!=null){
+                        if(customerRepository.existsByCustomerPhoneNo(request.getCustomerPhoneNo())){
+                            throw new CustomerAlreadyExistsException();
+                        }
+                        existing.setCustomerPhoneNo(request.getCustomerPhoneNo());
+                    }
+                    if(request.getCustomerEmail()!=null){
+                        if(customerRepository.existsByCustomerEmail(request.getCustomerEmail())){
+                            throw new CustomerAlreadyExistsException();
+                        }
+                        existing.setCustomerEmail(request.getCustomerEmail());
+                    }
+                    if(request.getPassword()!=null){
+                        existing.setPassword(request.getPassword());
+                    }
 
-        if(updated.getCustomerName()!=null) {
-            existing.setCustomerName(updated.getCustomerName());
-        }
-        if(updated.getCustomerPhoneNo()!=null) {
-            existing.setCustomerPhoneNo(updated.getCustomerPhoneNo());
-        }
-        if(updated.getCustomerEmail()!=null) {
-            existing.setCustomerEmail(updated.getCustomerEmail());
-        }
-        Customer saved=customerRepository.save(existing);
-        log.info("Customer with id:{} updated successfully", saved.getCustomerId());
-        return saved;
+                    Customer saved=customerRepository.save(existing);
+                    return CustomerMapper.response(saved);
+                })
+                .orElseThrow(()->new CustomerNotFoundException(customerId));
     }
 }

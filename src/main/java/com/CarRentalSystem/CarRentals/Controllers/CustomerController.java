@@ -1,10 +1,9 @@
 package com.CarRentalSystem.CarRentals.Controllers;
 
-import com.CarRentalSystem.CarRentals.DTO.CustomerMapper;
 import com.CarRentalSystem.CarRentals.DTO.Request.CustomerCreateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Request.CustomerUpdateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Response.CustomerResponse;
-import com.CarRentalSystem.CarRentals.Entities.Customer;
+import com.CarRentalSystem.CarRentals.Enums.Role;
 import com.CarRentalSystem.CarRentals.Services.CustomerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,49 +23,54 @@ public class CustomerController {
     private final CustomerService customerService;
 
     //1.GET ALL CUSTOMERS
-    @GetMapping("/get-all")
-    public ResponseEntity<List<CustomerResponse>> getAllCustomers(){
-        List<CustomerResponse> customers=customerService.getAllCustomers()
-                .stream()
-                .map(CustomerMapper::response)
-                .toList();
+    @GetMapping
+    public ResponseEntity<List<CustomerResponse>> getCustomers(
+            @RequestParam(required = false) String customerName,
+            @RequestParam(required = false) String customerPhoneNo,
+            @RequestParam(required = false) Role role
+    ){
+
+        List<CustomerResponse> customers;
+
+        if(customerName!=null){
+            customers = customerService.getCustomersByName(customerName);
+
+        }else if(customerPhoneNo!=null){
+            customers = customerService.getCustomersByPhoneNoContaining(customerPhoneNo);
+
+        }else if(role!=null){
+            customers = customerService.getCustomersByRole(role);
+
+        }else{
+            customers = customerService.getAllCustomers();
+        }
+
         return ResponseEntity.ok(customers);
     }
 
     //2.GET CUSTOMER BY CUSTOMER ID
-    @GetMapping("/id/{customerId}")
+    @GetMapping("/{customerId}")
     public ResponseEntity<CustomerResponse> getCustomerById(@PathVariable Integer customerId){
-        Customer customer=customerService.getCustomerById(customerId);
-        return ResponseEntity.ok(CustomerMapper.response(customer));
+        return ResponseEntity.ok(customerService.getCustomerById(customerId));
     }
 
-    //3.GET CUSTOMER BY CUSTOMER NAME
-    @GetMapping("/name/{customerName}")
-    public ResponseEntity<List<CustomerResponse>> getByCustomerName(@PathVariable String customerName){
-        List<CustomerResponse> customers=customerService.getCustomerByName(customerName)
-                .stream()
-                .map(CustomerMapper::response)
-                .toList();
-        return ResponseEntity.ok(customers);
+    //GET CUSTOMER BY PHONE NO
+    @GetMapping("/phone")
+    public ResponseEntity<CustomerResponse> getCustomerByPhoneNo(@RequestParam String number){
+        return ResponseEntity.ok(customerService.getCustomerByPhoneNo(number));
     }
 
-    //4.GET CUSTOMERS BY PARTIAL CONTAINING AND CASE-INSENSITIVE SEARCH
-    @GetMapping("/search")
-    public ResponseEntity<List<CustomerResponse>> getCustomerByNameContaining(
-            @RequestParam String keyword){
-        List<CustomerResponse> customers=customerService.searchCustomers(keyword)
-                .stream()
-                .map(CustomerMapper::response)
-                .toList();
-        return ResponseEntity.ok(customers);
+    //GET CUSTOMER BY EMAIL
+    @GetMapping("/email")
+    public ResponseEntity<CustomerResponse> getCustomerByEmail(@RequestParam String mail){
+        return ResponseEntity.ok(customerService.getCustomerByEmail(mail));
     }
 
     //5.ADD CUSTOMER
-    @PostMapping("/add-customer")
-    public ResponseEntity<CustomerResponse> addCustomer(@Valid @RequestBody CustomerCreateRequest customer){
-        Customer newCustomer=CustomerMapper.create(customer);
-        Customer saved=customerService.addCustomer(newCustomer);
-        return ResponseEntity.status(HttpStatus.CREATED).body(CustomerMapper.response(saved));
+    @PostMapping
+    public ResponseEntity<CustomerResponse> addCustomer(@Valid @RequestBody CustomerCreateRequest request){
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(customerService.addCustomer(request));
     }
 
     //6.DELETE CUSTOMER BY CUSTOMER ID
@@ -79,10 +83,8 @@ public class CustomerController {
     //7.UPDATE CUSTOMER DETAILS BY CUSTOMER ID
     @PutMapping("/{customerId}")
     public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable Integer customerId,
-                                                           @RequestBody CustomerUpdateRequest customer){
+                                                           @RequestBody CustomerUpdateRequest request){
 
-        Customer update=CustomerMapper.update(customer);
-        Customer updated=customerService.updateCustomer(customerId,update);
-        return ResponseEntity.ok(CustomerMapper.response(updated));
+        return ResponseEntity.ok(customerService.updateCustomer(customerId,request));
     }
 }

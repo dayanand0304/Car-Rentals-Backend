@@ -10,6 +10,6 @@ public class CustomerNotFoundException extends RuntimeException{
     }
 
     public CustomerNotFoundException(){
-        super("Customer Details with Above Keyword are Not Found");
+        super("Customer Details Not Found");
     }
 }

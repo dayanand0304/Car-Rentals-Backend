@@ -27,6 +27,5 @@ public class CustomerCreateRequest {
     @Size(min = 8,max=20, message = "password must in 8-20 characters")
     private String password;
 
-    @NotNull(message = "role must not be null")
-    private Role role;
+    private Role role=Role.CUSTOMER;
 }

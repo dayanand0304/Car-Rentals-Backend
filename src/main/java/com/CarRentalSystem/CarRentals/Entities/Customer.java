@@ -45,6 +45,5 @@ public class Customer {
     @OneToMany(mappedBy="customer",
             fetch = FetchType.LAZY)
     private List<Rental> rentals;
-
     private LocalDateTime deletedAt;
 }

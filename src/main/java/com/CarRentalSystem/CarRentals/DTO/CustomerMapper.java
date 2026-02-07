@@ -11,14 +11,15 @@ public class CustomerMapper {
         customer.setCustomerName(request.getCustomerName());
         customer.setCustomerPhoneNo(request.getCustomerPhoneNo());
         customer.setCustomerEmail(request.getCustomerEmail());
+        customer.setPassword(request.getPassword());
+        customer.setRole(request.getRole());
         return customer;
     }
-    public static Customer update(CustomerUpdateRequest request){
-        Customer customer=new Customer();
+    public static void update(Customer customer,CustomerUpdateRequest request){
         customer.setCustomerName(request.getCustomerName());
         customer.setCustomerPhoneNo(request.getCustomerPhoneNo());
         customer.setCustomerEmail(request.getCustomerEmail());
-        return customer;
+        customer.setPassword(request.getPassword());
     }
 
     public static CustomerResponse response(Customer customer){
@@ -26,7 +27,9 @@ public class CustomerMapper {
                 customer.getCustomerId(),
                 customer.getCustomerName(),
                 customer.getCustomerPhoneNo(),
-                customer.getCustomerEmail()
+                customer.getCustomerEmail(),
+                customer.getRole(),
+                customer.getRentals()
         );
     }
 }
