@@ -1,10 +1,8 @@
 package com.CarRentalSystem.CarRentals.Controllers;
 
-import com.CarRentalSystem.CarRentals.DTO.CarMapper;
 import com.CarRentalSystem.CarRentals.DTO.Request.CarCreateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Request.CarUpdateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Response.CarResponse;
-import com.CarRentalSystem.CarRentals.Entities.Car;
 import com.CarRentalSystem.CarRentals.Enums.FuelType;
 import com.CarRentalSystem.CarRentals.Enums.SeatType;
 import com.CarRentalSystem.CarRentals.Services.CarService;
@@ -138,5 +136,4 @@ public class CarController {
 
         return ResponseEntity.ok(carService.updateCarDetails(carId,request));
     }
-
 }
