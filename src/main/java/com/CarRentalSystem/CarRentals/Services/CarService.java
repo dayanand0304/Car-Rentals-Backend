@@ -5,19 +5,23 @@ import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotActiveExceptio
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotAvailableException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotFoundException;
 import com.CarRentalSystem.CarRentals.DTO.CarMapper;
+import com.CarRentalSystem.CarRentals.DTO.PageMapper;
 import com.CarRentalSystem.CarRentals.DTO.Request.CarCreateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Request.CarUpdateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Response.CarResponse;
+import com.CarRentalSystem.CarRentals.DTO.Response.PageResponse;
 import com.CarRentalSystem.CarRentals.Entities.Car;
 import com.CarRentalSystem.CarRentals.Enums.FuelType;
 import com.CarRentalSystem.CarRentals.Enums.SeatType;
 import com.CarRentalSystem.CarRentals.Repositories.CarRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+
 
 @Service
 @Slf4j
@@ -28,12 +32,11 @@ public class CarService {
     private final CarRepository carRepository;
 
     //1.GET ALL CAR DETAILS
-    public List<CarResponse> getAllCars(){
+    public PageResponse<CarResponse> getAllCars(Pageable pageable){
         log.info("Fetching All Cars");
-        return carRepository.findAll()
-                .stream()
-                .map(CarMapper::response)
-                .toList();
+        Page<Car> page=carRepository.findAll(pageable);
+
+        return PageMapper.toPageResponse(page,CarMapper::response);
     }
 
     //2.GET CAR DETAILS BY ID
@@ -54,40 +57,36 @@ public class CarService {
     }
 
     //3.GET AVAILABLE CARS
-    public List<CarResponse> getAvailableCars(){
+    public PageResponse<CarResponse> getAvailableCars(Pageable pageable){
         log.info("Fetching Available Cars");
-        return carRepository.findByAvailableTrue()
-                .stream()
-                .map(CarMapper::response)
-                .toList();
+        Page<Car> page=carRepository.findByAvailableTrue(pageable);
+
+        return PageMapper.toPageResponse(page,CarMapper::response);
     }
 
     //4.GET CAR DETAILS BY CAR BRAND
-    public List<CarResponse> getCarsByBrand(String carBrand){
+    public PageResponse<CarResponse> getCarsByBrand(String carBrand,Pageable pageable){
         log.info("Fetching All Cars By BrandName:{}",carBrand);
-        return carRepository.findByCarBrandContainingIgnoreCase(carBrand)
-                .stream()
-                .map(CarMapper::response)
-                .toList();
+        Page<Car> page=carRepository.findByCarBrandContainingIgnoreCase(carBrand,pageable);
+
+        return PageMapper.toPageResponse(page,CarMapper::response);
     }
 
     //5.GET AVAILABLE CAR BRAND DETAILS
-    public List<CarResponse> getCarsByBrandAndAvailableTrue(String carBrand){
+    public PageResponse<CarResponse> getCarsByBrandAndAvailableTrue(String carBrand,Pageable pageable){
         log.info("Fetching All Available Cars By BrandName:{}",carBrand );
-        return carRepository.findByCarBrandContainingIgnoreCaseAndAvailableTrue(carBrand)
-                .stream()
-                .map(CarMapper::response)
-                .toList();
+        Page<Car> page=carRepository.findByCarBrandContainingIgnoreCaseAndAvailableTrue(carBrand,pageable);
+
+        return PageMapper.toPageResponse(page,CarMapper::response);
     }
 
     //6.GET CAR DETAILS BY CAR BRAND AND MODEL
-    public List<CarResponse> getCarsByBrandAndModel(String carBrand, String carModel){
+    public PageResponse<CarResponse> getCarsByBrandAndModel(String carBrand, String carModel,Pageable pageable){
         log.info("Fetching All Cars By BrandName:{} and CarModel:{}",carBrand,carModel);
 
-        return carRepository.findByCarBrandAndCarModelContainingIgnoreCase(carBrand,carModel)
-                .stream()
-                .map(CarMapper::response)
-                .toList();
+        Page<Car> page=carRepository.findByCarBrandAndCarModelContainingIgnoreCase(carBrand,carModel,pageable);
+
+        return PageMapper.toPageResponse(page,CarMapper::response);
     }
 
 
@@ -100,27 +99,24 @@ public class CarService {
     }
 
     //8.FIND CARS BY FUEL TYPE
-    public List<CarResponse> getCarsByFuelType(FuelType fuelType){
-        return carRepository.findByFuelType(fuelType)
-                .stream()
-                .map(CarMapper::response)
-                .toList();
+    public PageResponse<CarResponse> getCarsByFuelType(FuelType fuelType,Pageable pageable){
+        Page<Car> page=carRepository.findByFuelType(fuelType,pageable);
+
+        return PageMapper.toPageResponse(page,CarMapper::response);
     }
 
     //9.FIND BY SEAT TYPE
-    public List<CarResponse> getCarsBySeatType(SeatType seats){
-        return carRepository.findBySeats(seats)
-                .stream()
-                .map(CarMapper::response)
-                .toList();
+    public PageResponse<CarResponse> getCarsBySeatType(SeatType seats,Pageable pageable){
+        Page<Car> page=carRepository.findBySeats(seats,pageable);
+
+        return PageMapper.toPageResponse(page,CarMapper::response);
     }
 
     //10.FIND CAR BY PRICE RANGE
-    public List<CarResponse> getCarsByPriceRange(Integer min,Integer max){
-        return carRepository.findByCarRentPerDayBetween(min, max)
-                .stream()
-                .map(CarMapper::response)
-                .toList();
+    public PageResponse<CarResponse> getCarsByPriceRange(Integer min,Integer max,Pageable pageable){
+        Page<Car> page=carRepository.findByCarRentPerDayBetween(min, max,pageable);
+
+        return PageMapper.toPageResponse(page,CarMapper::response);
     }
 
     //11.FIND CAR BY REGISTRATION NUMBER
@@ -132,11 +128,10 @@ public class CarService {
     }
 
     //12.GET CARS BY LAST FOUR DIGITS OF REGISTER NUMBER
-    public List<CarResponse> getCarsByLastRegisterNum(String number){
-        return carRepository.findByRegistrationNumberEndingWith(number)
-                .stream()
-                .map(CarMapper::response)
-                .toList();
+    public PageResponse<CarResponse> getCarsByLastRegisterNum(String number,Pageable pageable){
+        Page<Car> page=carRepository.findByRegistrationNumberEndingWith(number,pageable);
+
+        return PageMapper.toPageResponse(page,CarMapper::response);
     }
 
     //13.ADD CAR
@@ -213,10 +208,9 @@ public class CarService {
     }
 
     //16.FIND CAR BY ACTIVE
-    public List<CarResponse> getCarsByActive(Boolean active){
-        return carRepository.findByActive(active)
-                .stream()
-                .map(CarMapper::response)
-                .toList();
+    public PageResponse<CarResponse> getCarsByActive(Boolean active,Pageable pageable){
+        Page<Car> page=carRepository.findByActive(active,pageable);
+
+        return PageMapper.toPageResponse(page,CarMapper::response);
     }
 }

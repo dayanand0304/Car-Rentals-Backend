@@ -3,19 +3,22 @@ package com.CarRentalSystem.CarRentals.Services;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerAlreadyExistsException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
 import com.CarRentalSystem.CarRentals.DTO.CustomerMapper;
+import com.CarRentalSystem.CarRentals.DTO.PageMapper;
 import com.CarRentalSystem.CarRentals.DTO.Request.CustomerCreateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Request.CustomerUpdateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Response.CustomerResponse;
+import com.CarRentalSystem.CarRentals.DTO.Response.PageResponse;
 import com.CarRentalSystem.CarRentals.Entities.Customer;
 import com.CarRentalSystem.CarRentals.Enums.Role;
 import com.CarRentalSystem.CarRentals.Repositories.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @Slf4j
@@ -26,12 +29,11 @@ public class CustomerService {
 
 
     //1.GET ALL CUSTOMERS
-    public List<CustomerResponse> getAllCustomers(){
+    public PageResponse<CustomerResponse> getAllCustomers(Pageable pageable){
         log.info("Fetching All Customers");
-        return customerRepository.findAll()
-                .stream()
-                .map(CustomerMapper::response)
-                .toList();
+        Page<Customer> page=customerRepository.findAll(pageable);
+
+        return PageMapper.toPageResponse(page,CustomerMapper::response);
     }
 
 
@@ -46,12 +48,10 @@ public class CustomerService {
     }
 
     //3.GET CUSTOMERS BY CUSTOMER NAME CONTAINING
-    public List<CustomerResponse> getCustomersByName(String customerName){
+    public PageResponse<CustomerResponse> getCustomersByName(String customerName,Pageable pageable){
         log.info("Fetching All Customers By Customer Name:{}",customerName);
-        return customerRepository.findByCustomerNameContainingIgnoreCase(customerName)
-                .stream()
-                .map(CustomerMapper::response)
-                .toList();
+        Page<Customer> page=customerRepository.findByCustomerNameContainingIgnoreCase(customerName,pageable);
+        return PageMapper.toPageResponse(page,CustomerMapper::response);
     }
 
     //GET CUSTOMER BY CUSTOMER PHONE NO
@@ -63,11 +63,10 @@ public class CustomerService {
     }
 
     //GET CUSTOMERS BY CUSTOMER PHONE NO CONTAINING
-    public List<CustomerResponse> getCustomersByPhoneNoContaining(String number){
-        return customerRepository.findByCustomerPhoneNoContaining(number)
-                .stream()
-                .map(CustomerMapper::response)
-                .toList();
+    public PageResponse<CustomerResponse> getCustomersByPhoneNoContaining(String number,Pageable pageable){
+        Page<Customer> page=customerRepository.findByCustomerPhoneNoContaining(number,pageable);
+
+        return PageMapper.toPageResponse(page,CustomerMapper::response);
     }
 
     //GET CUSTOMER BY EMAIL
@@ -79,19 +78,17 @@ public class CustomerService {
     }
 
     //GET CUSTOMERS BY ROLE
-    public List<CustomerResponse> getCustomersByRole(Role role){
-        return customerRepository.findByRole(role)
-                .stream()
-                .map(CustomerMapper::response)
-                .toList();
+    public PageResponse<CustomerResponse> getCustomersByRole(Role role,Pageable pageable){
+        Page<Customer> page=customerRepository.findByRole(role,pageable);
+
+        return PageMapper.toPageResponse(page,CustomerMapper::response);
     }
 
     //GET CUSTOMERS BY ACTIVE
-    public List<CustomerResponse> getCustomersByActive(boolean active){
-        return customerRepository.findByActive(active)
-                .stream()
-                .map(CustomerMapper::response)
-                .toList();
+    public PageResponse<CustomerResponse> getCustomersByActive(boolean active,Pageable pageable){
+        Page<Customer> page=customerRepository.findByActive(active,pageable);
+
+        return PageMapper.toPageResponse(page,CustomerMapper::response);
     }
 
     //5.ADD CUSTOMER

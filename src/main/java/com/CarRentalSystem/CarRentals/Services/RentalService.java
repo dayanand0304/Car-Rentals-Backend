@@ -4,7 +4,9 @@ import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotAvailableExcep
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotFoundException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Rentals.*;
+import com.CarRentalSystem.CarRentals.DTO.PageMapper;
 import com.CarRentalSystem.CarRentals.DTO.RentalMapper;
+import com.CarRentalSystem.CarRentals.DTO.Response.PageResponse;
 import com.CarRentalSystem.CarRentals.DTO.Response.RentalResponse;
 import com.CarRentalSystem.CarRentals.Enums.BookingStatus;
 import com.CarRentalSystem.CarRentals.Enums.RentalType;
@@ -16,6 +18,8 @@ import com.CarRentalSystem.CarRentals.Repositories.CustomerRepository;
 import com.CarRentalSystem.CarRentals.Repositories.RentalRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +27,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 
 @Service
 @Slf4j
@@ -37,12 +40,11 @@ public class RentalService {
 
 
     //1.GET ALL RENTALS
-    public List<RentalResponse> getAllRentals(){
+    public PageResponse<RentalResponse> getAllRentals(Pageable pageable){
         log.info("Fetching All Rentals");
-        return rentalRepository.findAll()
-                .stream()
-                .map(RentalMapper::response)
-                .toList();
+        Page<Rental> page=rentalRepository.findAll(pageable);
+
+        return PageMapper.toPageResponse(page,RentalMapper::response);
     }
 
     //2.GET RENTAL BY ID
@@ -55,73 +57,65 @@ public class RentalService {
     }
 
     //3.GET RENTALS BY CUSTOMER ID
-    public List<RentalResponse> getRentalsByCustomerId(Integer customerId){
+    public PageResponse<RentalResponse> getRentalsByCustomerId(Integer customerId,Pageable pageable){
         log.info("Fetching All Rentals By Customer Id:{}",customerId);
-        return rentalRepository.findByCustomerCustomerId(customerId)
-                .stream()
-                .map(RentalMapper::response)
-                .toList();
+        Page<Rental> page=rentalRepository.findByCustomerCustomerId(customerId,pageable);
+
+        return PageMapper.toPageResponse(page,RentalMapper::response);
     }
 
     //4.GET RENTALS BY CAR ID
-    public List<RentalResponse> getRentalByCarId(Integer carId){
+    public PageResponse<RentalResponse> getRentalByCarId(Integer carId,Pageable pageable){
         log.info("Fetching All Rentals By Car Id:{}",carId);
-        return rentalRepository.findByCarCarId(carId)
-                .stream()
-                .map(RentalMapper::response)
-                .toList();
+        Page<Rental> page=rentalRepository.findByCarCarId(carId,pageable);
+
+        return PageMapper.toPageResponse(page,RentalMapper::response);
     }
 
     //5.GET RENTALS BY STATUS
-    public List<RentalResponse> getRentalByStatus(BookingStatus status){
+    public PageResponse<RentalResponse> getRentalByStatus(BookingStatus status,Pageable pageable){
         log.info("Fetching All Rentals By status:{}",status);
-        return rentalRepository.findByStatus(status)
-                .stream()
-                .map(RentalMapper::response)
-                .toList();
+        Page<Rental> page=rentalRepository.findByStatus(status,pageable);
+
+        return PageMapper.toPageResponse(page,RentalMapper::response);
     }
 
     //GET RENTALS BY RENTAL TYPE
-    public List<RentalResponse> getRentalsByRentalType(RentalType rentalType){
-        return rentalRepository.findByRentalType(rentalType)
-                .stream()
-                .map(RentalMapper::response)
-                .toList();
+    public PageResponse<RentalResponse> getRentalsByRentalType(RentalType rentalType,Pageable pageable){
+        Page<Rental> page=rentalRepository.findByRentalType(rentalType,pageable);
+
+        return PageMapper.toPageResponse(page,RentalMapper::response);
     }
 
     //GET ALL DAMAGED RENTALS
-    public List<RentalResponse> getRentalsOfDamaged(){
-        return rentalRepository.findByDamagedTrue()
-                .stream()
-                .map(RentalMapper::response)
-                .toList();
+    public PageResponse<RentalResponse> getRentalsOfDamaged(Pageable pageable){
+        Page<Rental> page=rentalRepository.findByDamagedTrue(pageable);
+
+        return PageMapper.toPageResponse(page,RentalMapper::response);
     }
 
     //GET OVER DUES RENTALS
-    public List<RentalResponse> getAllOverdueRentals(){
+    public PageResponse<RentalResponse> getAllOverdueRentals(Pageable pageable){
         LocalDateTime now=LocalDateTime.now();
-        return rentalRepository.findByActualReturnTimeIsNullAndExpectedReturnTimeBefore(now)
-                .stream()
-                .map(RentalMapper::response)
-                .toList();
+        Page<Rental> page=rentalRepository.findByActualReturnTimeIsNullAndExpectedReturnTimeBefore(now,pageable);
+
+        return PageMapper.toPageResponse(page,RentalMapper::response);
     }
 
     //6.FIND BY CUSTOMER ID AND STATUS
-    public List<RentalResponse> getRentalByCustomerIdAndStatus(Integer customerId,BookingStatus status){
+    public PageResponse<RentalResponse> getRentalByCustomerIdAndStatus(Integer customerId,BookingStatus status,Pageable pageable){
         log.info("Fetching All Rentals By Customer Id:{} With {}",customerId,status);
-        return rentalRepository.findByCustomerCustomerIdAndStatus(customerId,status)
-                .stream()
-                .map(RentalMapper::response)
-                .toList();
+        Page<Rental> page=rentalRepository.findByCustomerCustomerIdAndStatus(customerId,status,pageable);
+
+        return PageMapper.toPageResponse(page,RentalMapper::response);
     }
 
     //6.FIND BY CAR ID AND STATUS
-    public List<RentalResponse> getRentalByCarIdAndStatus(Integer carId,BookingStatus status){
+    public PageResponse<RentalResponse> getRentalByCarIdAndStatus(Integer carId,BookingStatus status,Pageable pageable){
         log.info("Fetching All Rentals By Customer Id:{} With {}",carId,status);
-        return rentalRepository.findByCarCarIdAndStatus(carId,status)
-                .stream()
-                .map(RentalMapper::response)
-                .toList();
+        Page<Rental> page=rentalRepository.findByCarCarIdAndStatus(carId,status,pageable);
+
+        return PageMapper.toPageResponse(page,RentalMapper::response);
     }
 
     //7.RENT A CAR

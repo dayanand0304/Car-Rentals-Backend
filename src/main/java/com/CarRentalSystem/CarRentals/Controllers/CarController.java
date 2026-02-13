@@ -3,11 +3,14 @@ package com.CarRentalSystem.CarRentals.Controllers;
 import com.CarRentalSystem.CarRentals.DTO.Request.CarCreateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Request.CarUpdateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Response.CarResponse;
+import com.CarRentalSystem.CarRentals.DTO.Response.PageResponse;
 import com.CarRentalSystem.CarRentals.Enums.FuelType;
 import com.CarRentalSystem.CarRentals.Enums.SeatType;
 import com.CarRentalSystem.CarRentals.Services.CarService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,36 +36,37 @@ public class CarController {
      * /cars?brand=BMW&available=true
      */
     @GetMapping
-    public ResponseEntity<List<CarResponse>> getCars(
+    public ResponseEntity<PageResponse<CarResponse>> getCars(
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String model,
             @RequestParam(required = false) FuelType fuelType,
             @RequestParam(required = false) SeatType seats,
-            @RequestParam(required = false) Boolean available
-    ) {
+            @RequestParam(required = false) Boolean available,
+            @PageableDefault(size = 5, sort = "carId")Pageable pageable
+            ) {
 
-        List<CarResponse> cars;
+        PageResponse<CarResponse> cars;
 
         if (brand != null && model != null) {
-            cars = carService.getCarsByBrandAndModel(brand,model);
+            cars = carService.getCarsByBrandAndModel(brand,model,pageable);
 
         } else if (brand != null && Boolean.TRUE.equals(available)) {
-            cars = carService.getCarsByBrandAndAvailableTrue(brand);
+            cars = carService.getCarsByBrandAndAvailableTrue(brand,pageable);
 
         } else if (brand != null) {
-            cars = carService.getCarsByBrand(brand);
+            cars = carService.getCarsByBrand(brand,pageable);
 
         }else if(fuelType!=null){
-            cars = carService.getCarsByFuelType(fuelType);
+            cars = carService.getCarsByFuelType(fuelType,pageable);
 
         }else if(seats!=null){
-            cars= carService.getCarsBySeatType(seats);
+            cars= carService.getCarsBySeatType(seats,pageable);
 
         } else if (Boolean.TRUE.equals(available)) {
-            cars = carService.getAvailableCars();
+            cars = carService.getAvailableCars(pageable);
 
         } else {
-            cars = carService.getAllCars();
+            cars = carService.getAllCars(pageable);
         }
 
         return ResponseEntity.ok(cars);
@@ -77,7 +81,7 @@ public class CarController {
     }
 
     //GET CAR BY ID
-    @GetMapping("/active/{carId}")
+    @GetMapping("/{carId}/active")
     public ResponseEntity<CarResponse> getActiveCarById(@PathVariable Integer carId) {
         return ResponseEntity.ok(carService.getActiveCarById(carId));
     }
@@ -90,9 +94,10 @@ public class CarController {
 
     //GET CARS BY PRICE RANGE
     @GetMapping("/price-range")
-    public ResponseEntity<List<CarResponse>> getsCarsByPriceRange(@RequestParam Integer min,
-                                                                  @RequestParam Integer max){
-        return ResponseEntity.ok(carService.getCarsByPriceRange(min,max));
+    public ResponseEntity<PageResponse<CarResponse>> getsCarsByPriceRange(@RequestParam Integer min,
+                                                                  @RequestParam Integer max,
+                                                                  @PageableDefault(size = 5, sort = "carRentPerDay")Pageable pageable){
+        return ResponseEntity.ok(carService.getCarsByPriceRange(min,max,pageable));
     }
 
     //GET CAR BY REGISTRATION NUMBER
@@ -103,14 +108,16 @@ public class CarController {
 
     //GET CARS BY LAST FOUR DIGITS OF REGISTER NUMBER
     @GetMapping("/four-digits")
-    public ResponseEntity<List<CarResponse>> getCarsByLastFourDigits(@RequestParam String number){
-        return ResponseEntity.ok(carService.getCarsByLastRegisterNum(number));
+    public ResponseEntity<PageResponse<CarResponse>> getCarsByLastFourDigits(@RequestParam String number,
+                                                                     @PageableDefault(size = 5, sort = "registrationNumber")Pageable pageable){
+        return ResponseEntity.ok(carService.getCarsByLastRegisterNum(number,pageable));
     }
 
     //GET CARS BY ACTIVE
     @GetMapping("/active")
-    public ResponseEntity<List<CarResponse>> getCarsByActive(@RequestParam Boolean active){
-        return ResponseEntity.ok(carService.getCarsByActive(active));
+    public ResponseEntity<PageResponse<CarResponse>> getCarsByActive(@RequestParam Boolean active,
+                                                             @PageableDefault(size = 5, sort = "carId")Pageable pageable){
+        return ResponseEntity.ok(carService.getCarsByActive(active,pageable));
     }
 
     // ADD CAR

@@ -1,19 +1,19 @@
 package com.CarRentalSystem.CarRentals.Controllers;
 
-import com.CarRentalSystem.CarRentals.DTO.RentalMapper;
 import com.CarRentalSystem.CarRentals.DTO.Request.RentalCreateRequest;
+import com.CarRentalSystem.CarRentals.DTO.Response.PageResponse;
 import com.CarRentalSystem.CarRentals.DTO.Response.RentalResponse;
 import com.CarRentalSystem.CarRentals.Enums.BookingStatus;
-import com.CarRentalSystem.CarRentals.Entities.Rental;
 import com.CarRentalSystem.CarRentals.Enums.RentalType;
 import com.CarRentalSystem.CarRentals.Services.RentalService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/rentals")
@@ -24,28 +24,29 @@ public class RentalController {
 
     //1.GET ALL RENTALS
     @GetMapping()
-    public ResponseEntity<List<RentalResponse>> getAllRentals(
+    public ResponseEntity<PageResponse<RentalResponse>> getAllRentals(
             @RequestParam(required = false) Integer customerId,
             @RequestParam(required = false) Integer carId,
             @RequestParam(required = false) BookingStatus status,
-            @RequestParam(required = false)RentalType rentalType
+            @RequestParam(required = false)RentalType rentalType,
+            @PageableDefault(size = 10,sort="rentalId")Pageable pageable
             ){
-        List<RentalResponse> rentals;
+        PageResponse<RentalResponse> rentals;
 
         if(customerId!=null && status!=null){
-            rentals = rentalService.getRentalByCustomerIdAndStatus(customerId,status);
+            rentals = rentalService.getRentalByCustomerIdAndStatus(customerId,status,pageable);
         }else if(carId!=null && status!=null) {
-            rentals = rentalService.getRentalByCarIdAndStatus(carId, status);
+            rentals = rentalService.getRentalByCarIdAndStatus(carId, status,pageable);
         }else if(customerId!=null){
-            rentals = rentalService.getRentalsByCustomerId(customerId);
+            rentals = rentalService.getRentalsByCustomerId(customerId,pageable);
         }else if(carId!=null){
-            rentals = rentalService.getRentalByCarId(carId);
+            rentals = rentalService.getRentalByCarId(carId,pageable);
         }else if(status!=null){
-            rentals = rentalService.getRentalByStatus(status);
+            rentals = rentalService.getRentalByStatus(status,pageable);
         }else if(rentalType!=null){
-            rentals = rentalService.getRentalsByRentalType(rentalType);
+            rentals = rentalService.getRentalsByRentalType(rentalType,pageable);
         }else{
-            rentals = rentalService.getAllRentals();
+            rentals = rentalService.getAllRentals(pageable);
         }
 
         return ResponseEntity.ok(rentals);
@@ -59,14 +60,14 @@ public class RentalController {
 
     //GET ALL DAMAGED RENTALS
     @GetMapping("/damaged")
-    public ResponseEntity<List<RentalResponse>> getAllDamagedRentals(){
-        return ResponseEntity.ok(rentalService.getRentalsOfDamaged());
+    public ResponseEntity<PageResponse<RentalResponse>> getAllDamagedRentals(@PageableDefault(size = 10,sort="rentalId")Pageable pageable){
+        return ResponseEntity.ok(rentalService.getRentalsOfDamaged(pageable));
     }
 
     //10.GET OVER DUES RENTALS
     @GetMapping("/over-dues")
-    public ResponseEntity<List<RentalResponse>> getOverDues(){
-        return ResponseEntity.ok(rentalService.getAllOverdueRentals());
+    public ResponseEntity<PageResponse<RentalResponse>> getOverDues(@PageableDefault(size = 10,sort="rentalId")Pageable pageable){
+        return ResponseEntity.ok(rentalService.getAllOverdueRentals(pageable));
     }
 
     //7.RENT A CAR
@@ -84,13 +85,13 @@ public class RentalController {
     }
 
     //8.RETURN A CAR
-    @PutMapping("/return-car/{rentalId}")
+    @PutMapping("/{rentalId}/return")
     public ResponseEntity<RentalResponse> returnCar(@PathVariable Integer rentalId){
         return ResponseEntity.ok(rentalService.returnACar(rentalId));
     }
 
     //9.CANCEL RENTAL
-    @DeleteMapping("/cancel/{rentalId}")
+    @DeleteMapping("/{rentalId}/cancel")
     public ResponseEntity<Void> cancelRental(@PathVariable Integer rentalId){
         rentalService.cancelCar(rentalId);
         return ResponseEntity.noContent().build();

@@ -3,31 +3,34 @@ package com.CarRentalSystem.CarRentals.Repositories;
 import com.CarRentalSystem.CarRentals.Enums.BookingStatus;
 import com.CarRentalSystem.CarRentals.Entities.Rental;
 import com.CarRentalSystem.CarRentals.Enums.RentalType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Repository
 public interface RentalRepository extends JpaRepository<Rental,Integer> {
 
-    List<Rental> findByCarCarId(Integer carId);
-    List<Rental> findByCustomerCustomerId(Integer customerId);
+    Page<Rental> findByCarCarId(Integer carId, Pageable pageable);
+    Page<Rental> findByCustomerCustomerId(Integer customerId, Pageable pageable);
 
-    List<Rental> findByStatus(BookingStatus status);
+    Page<Rental> findByStatus(BookingStatus status, Pageable pageable);
 
-    List<Rental> findByRentalType(RentalType rentalType);
+    Page<Rental> findByRentalType(RentalType rentalType, Pageable pageable);
 
-    List<Rental> findByDamagedTrue();
+    Page<Rental> findByDamagedTrue(Pageable pageable);
 
-    List<Rental> findByCarCarIdAndStatus(
+    Page<Rental> findByCarCarIdAndStatus(
             Integer carId,
-            BookingStatus status);
+            BookingStatus status,
+            Pageable pageable);
 
-    List<Rental> findByCustomerCustomerIdAndStatus(
+    Page<Rental> findByCustomerCustomerIdAndStatus(
             Integer customerId,
-            BookingStatus status);
+            BookingStatus status,
+            Pageable pageable);
 
-    List<Rental> findByActualReturnTimeIsNullAndExpectedReturnTimeBefore(LocalDateTime now);
+    Page<Rental> findByActualReturnTimeIsNullAndExpectedReturnTimeBefore(LocalDateTime now, Pageable pageable);
 }

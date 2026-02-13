@@ -3,19 +3,21 @@ package com.CarRentalSystem.CarRentals.Controllers;
 import com.CarRentalSystem.CarRentals.DTO.Request.CustomerCreateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Request.CustomerUpdateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Response.CustomerResponse;
+import com.CarRentalSystem.CarRentals.DTO.Response.PageResponse;
 import com.CarRentalSystem.CarRentals.Enums.Role;
 import com.CarRentalSystem.CarRentals.Services.CustomerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 
 @RestController
-@RequestMapping("/customer")
+@RequestMapping("/customers")
 @RequiredArgsConstructor
 public class CustomerController {
 
@@ -24,25 +26,26 @@ public class CustomerController {
 
     //1.GET ALL CUSTOMERS
     @GetMapping
-    public ResponseEntity<List<CustomerResponse>> getCustomers(
+    public ResponseEntity<PageResponse<CustomerResponse>> getCustomers(
             @RequestParam(required = false) String customerName,
             @RequestParam(required = false) String customerPhoneNo,
-            @RequestParam(required = false) Role role
-    ){
+            @RequestParam(required = false) Role role,
+            @PageableDefault(size = 5,sort = "customerId")Pageable pageable
+            ){
 
-        List<CustomerResponse> customers;
+        PageResponse<CustomerResponse> customers;
 
         if(customerName!=null){
-            customers = customerService.getCustomersByName(customerName);
+            customers = customerService.getCustomersByName(customerName,pageable);
 
         }else if(customerPhoneNo!=null){
-            customers = customerService.getCustomersByPhoneNoContaining(customerPhoneNo);
+            customers = customerService.getCustomersByPhoneNoContaining(customerPhoneNo,pageable);
 
         }else if(role!=null){
-            customers = customerService.getCustomersByRole(role);
+            customers = customerService.getCustomersByRole(role,pageable);
 
         }else{
-            customers = customerService.getAllCustomers();
+            customers = customerService.getAllCustomers(pageable);
         }
 
         return ResponseEntity.ok(customers);
