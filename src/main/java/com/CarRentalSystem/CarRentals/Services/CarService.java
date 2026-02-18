@@ -1,9 +1,6 @@
 package com.CarRentalSystem.CarRentals.Services;
 
-import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarAlreadyExistsException;
-import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotActiveException;
-import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotAvailableException;
-import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotFoundException;
+import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.*;
 import com.CarRentalSystem.CarRentals.DTO.CarMapper;
 import com.CarRentalSystem.CarRentals.DTO.PageMapper;
 import com.CarRentalSystem.CarRentals.DTO.Request.CarCreateRequest;
@@ -21,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 
 
 @Service
@@ -129,6 +127,12 @@ public class CarService {
 
     //12.GET CARS BY LAST FOUR DIGITS OF REGISTER NUMBER
     public PageResponse<CarResponse> getCarsByLastRegisterNum(String number,Pageable pageable){
+        if(number.length()!=4){
+            throw new RegistrationNumberFormatException("Enter exactly 4 digits");
+        }
+        if (!number.matches("\\d+")) {
+            throw new RegistrationNumberFormatException("Only numeric digits allowed");
+        }
         Page<Car> page=carRepository.findByRegistrationNumberEndingWith(number,pageable);
 
         return PageMapper.toPageResponse(page,CarMapper::response);
@@ -137,11 +141,12 @@ public class CarService {
     //13.ADD CAR
     public CarResponse addCar(CarCreateRequest request){
 
+        if(carRepository.existsByRegistrationNumber(request.getRegistrationNumber())){
+            throw new CarAlreadyExistsException(request.getRegistrationNumber());
+        }
+
         Car car=CarMapper.create(request);
 
-        if(carRepository.existsByRegistrationNumber(car.getRegistrationNumber())){
-            throw new CarAlreadyExistsException(car.getRegistrationNumber());
-        }
 
         log.info("Adding New Car Of Brand:{} and Model:{}", car.getCarBrand(),car.getCarModel());
 
@@ -152,7 +157,7 @@ public class CarService {
 
     //14.DELETE CAR
     @Transactional
-    public void deleteCar(Integer carId){
+    public void deActivateCar(Integer carId){
         log.info("Attempting to delete car with id: {}", carId);
 
         Car car = carRepository.findById(carId)
@@ -162,8 +167,23 @@ public class CarService {
             throw new CarNotAvailableException(carId);
         }
         car.setActive(false);
+        car.setDeletedAt(LocalDateTime.now());
         carRepository.save(car);
         log.info("Car with id:{} deleted successfully", carId);
+    }
+
+    //17.REACTIVATE CAR
+    public void reActivateCar(Integer carId){
+        Car car=carRepository.findById(carId)
+                .orElseThrow(()->new CarNotFoundException(carId));
+
+        if(Boolean.TRUE.equals(car.getActive())){
+            return;
+        }
+
+        car.setActive(true);
+        car.setDeletedAt(null);
+        carRepository.save(car);
     }
 
     //15.UPDATE CAR DETAILS
@@ -182,7 +202,13 @@ public class CarService {
                         existingDetails.setCarModel(updatedDetails.getCarModel());
                     }
                     if(updatedDetails.getRegistrationNumber()!=null){
-                        if(carRepository.existsByRegistrationNumber(updatedDetails.getRegistrationNumber())){
+
+                        if(!updatedDetails.getRegistrationNumber().matches("^[A-Z0-9-]+$")){
+                            throw new RegistrationNumberFormatException("Registration number format is Wrong");
+                        }
+
+                        if(!updatedDetails.getRegistrationNumber().equals(existingDetails.getRegistrationNumber()) &&
+                                carRepository.existsByRegistrationNumber(updatedDetails.getRegistrationNumber())){
                             throw new CarAlreadyExistsException(updatedDetails.getRegistrationNumber());
                         }
                         existingDetails.setRegistrationNumber(updatedDetails.getRegistrationNumber());
@@ -213,4 +239,6 @@ public class CarService {
 
         return PageMapper.toPageResponse(page,CarMapper::response);
     }
+
+
 }

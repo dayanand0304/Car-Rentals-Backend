@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/cars")
@@ -42,7 +41,7 @@ public class CarController {
             @RequestParam(required = false) FuelType fuelType,
             @RequestParam(required = false) SeatType seats,
             @RequestParam(required = false) Boolean available,
-            @PageableDefault(size = 5, sort = "carId")Pageable pageable
+            @PageableDefault(size = 20, sort = "carId")Pageable pageable
             ) {
 
         PageResponse<CarResponse> cars;
@@ -76,14 +75,8 @@ public class CarController {
 
     //GET CAR BY ID
     @GetMapping("/{carId}")
-    public ResponseEntity<CarResponse> getCarById(@PathVariable Integer carId) {
+    public ResponseEntity<CarResponse> getCarById(@PathVariable Integer carId){
         return ResponseEntity.ok(carService.getCarById(carId));
-    }
-
-    //GET CAR BY ID
-    @GetMapping("/{carId}/active")
-    public ResponseEntity<CarResponse> getActiveCarById(@PathVariable Integer carId) {
-        return ResponseEntity.ok(carService.getActiveCarById(carId));
     }
 
     //CHECK AVAILABILITY OF CAR BY CAR ID
@@ -107,7 +100,7 @@ public class CarController {
     }
 
     //GET CARS BY LAST FOUR DIGITS OF REGISTER NUMBER
-    @GetMapping("/four-digits")
+    @GetMapping("/last-four-digits")
     public ResponseEntity<PageResponse<CarResponse>> getCarsByLastFourDigits(@RequestParam String number,
                                                                      @PageableDefault(size = 5, sort = "registrationNumber")Pageable pageable){
         return ResponseEntity.ok(carService.getCarsByLastRegisterNum(number,pageable));
@@ -128,15 +121,22 @@ public class CarController {
                 .body(carService.addCar(request));
     }
 
-    // DELETE CAR
-    @DeleteMapping("/{carId}")
+    // DE-ACTIVATE CAR
+    @DeleteMapping("/{carId}/de-activate")
     public ResponseEntity<Void> deleteCar(@PathVariable Integer carId) {
-        carService.deleteCar(carId);
+        carService.deActivateCar(carId);
+        return ResponseEntity.noContent().build();
+    }
+
+    //RE-ACTIVATE CAR
+    @PutMapping("/{carId}/re-activate")
+    public ResponseEntity<Void> reActivateCar(@PathVariable Integer carId){
+        carService.reActivateCar(carId);
         return ResponseEntity.noContent().build();
     }
 
     // UPDATE CAR
-    @PutMapping("/{carId}")
+    @PatchMapping("/{carId}")
     public ResponseEntity<CarResponse> updateCar(
             @PathVariable Integer carId,
             @RequestBody CarUpdateRequest request) {

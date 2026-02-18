@@ -19,4 +19,5 @@ public class CarResponse {
     private SeatType seats;
     private Integer carRentPerDay;
     private Boolean available;
+    private Boolean active;
 }

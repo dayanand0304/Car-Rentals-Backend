@@ -1,9 +1,6 @@
 package com.CarRentalSystem.CarRentals.ExceptionHandler;
 
-import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarAlreadyExistsException;
-import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotActiveException;
-import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotAvailableException;
-import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.CarNotFoundException;
+import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.*;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerAlreadyExistsException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Rentals.*;
@@ -40,7 +37,8 @@ public class GlobalExceptionHandler {
     //400: Bad Request
     @ExceptionHandler({
             DurationException.class,
-            RentalTypeException.class
+            RentalTypeException.class,
+            RegistrationNumberFormatException.class
     })
     public ResponseEntity<ErrorResponse> handleBadRequest(RuntimeException ex,
                                                           HttpServletRequest request){

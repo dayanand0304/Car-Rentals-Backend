@@ -35,7 +35,8 @@ public class CarMapper {
                 car.getFuelType(),
                 car.getSeats(),
                 car.getCarRentPerDay(),
-                car.getAvailable()
+                car.getAvailable(),
+                car.getActive()
         );
     }
 }

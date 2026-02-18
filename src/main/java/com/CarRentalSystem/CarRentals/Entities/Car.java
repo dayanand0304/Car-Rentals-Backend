@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "car_list")
 @Getter
@@ -45,4 +47,6 @@ public class Car {
 
     @Column(nullable = false)
     private Boolean active=true;
+
+    private LocalDateTime deletedAt;
 }
