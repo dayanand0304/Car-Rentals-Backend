@@ -1,5 +1,6 @@
 package com.CarRentalSystem.CarRentals.Services;
 
+import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerAlreadyDeletedException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerAlreadyExistsException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
 import com.CarRentalSystem.CarRentals.DTO.CustomerMapper;
@@ -113,16 +114,29 @@ public class CustomerService {
         return CustomerMapper.response(saved);
     }
 
-    //6.DELETE CUSTOMER BY CUSTOMER ID
+    //6.DE-ACTIVATE CUSTOMER
     @Transactional
-    public void deleteCustomer(Integer customerId){
+    public void deActivateCustomer(Integer customerId){
         log.info("Attempting to delete customer with id: {}", customerId);
         Customer customer=customerRepository.findById(customerId)
                         .orElseThrow(()->new CustomerNotFoundException(customerId));
 
+        if(!customer.isActive()){
+            throw new CustomerAlreadyDeletedException(customerId);
+        }
         customer.setActive(false);
         customer.setDeletedAt(LocalDateTime.now());
 
+        customerRepository.save(customer);
+    }
+
+    //RE-ACTIVATE CUSTOMER
+    public void reActivateCustomer(Integer customerId){
+        Customer customer=customerRepository.findById(customerId)
+                .orElseThrow(()->new CustomerNotFoundException(customerId));
+
+        customer.setActive(true);
+        customer.setDeletedAt(null);
         customerRepository.save(customer);
     }
 
@@ -139,7 +153,8 @@ public class CustomerService {
                         existing.setCustomerName(request.getCustomerName());
                     }
                     if(request.getCustomerPhoneNo()!=null){
-                        if(customerRepository.existsByCustomerPhoneNo(request.getCustomerPhoneNo())){
+                        if(!request.getCustomerPhoneNo().equals(existing.getCustomerPhoneNo()) &&
+                                customerRepository.existsByCustomerPhoneNo(request.getCustomerPhoneNo())){
                             throw new CustomerAlreadyExistsException();
                         }
                         existing.setCustomerPhoneNo(request.getCustomerPhoneNo());

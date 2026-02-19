@@ -7,11 +7,16 @@ import com.CarRentalSystem.CarRentals.DTO.Response.PageResponse;
 import com.CarRentalSystem.CarRentals.Enums.Role;
 import com.CarRentalSystem.CarRentals.Services.CustomerService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -19,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/customers")
 @RequiredArgsConstructor
+@Validated
 public class CustomerController {
 
 
@@ -27,8 +33,16 @@ public class CustomerController {
     //1.GET ALL CUSTOMERS
     @GetMapping
     public ResponseEntity<PageResponse<CustomerResponse>> getCustomers(
-            @RequestParam(required = false) String customerName,
-            @RequestParam(required = false) String customerPhoneNo,
+            @RequestParam(required = false)
+            @Size(max = 100,message = "customer name length must not exceed")
+            String customerName,
+
+            @RequestParam(required = false)
+            @Pattern(
+                    regexp = "^[6-9]\\d{9}$",
+                    message = "Invalid Phone Number"
+            )
+            String customerPhoneNo,
             @RequestParam(required = false) Role role,
             @PageableDefault(size = 5,sort = "customerId")Pageable pageable
             ){
@@ -59,13 +73,21 @@ public class CustomerController {
 
     //GET CUSTOMER BY PHONE NO
     @GetMapping("/phone")
-    public ResponseEntity<CustomerResponse> getCustomerByPhoneNo(@RequestParam String number){
+    public ResponseEntity<CustomerResponse> getCustomerByPhoneNo(@RequestParam
+                                                                     @NotBlank(message = "phone number must not be blank")
+                                                                     @Pattern(
+                                                                             regexp = "^[6-9]\\d{9}$", message = "Invalid Phone Number"
+                                                                     )
+                                                                     String number){
         return ResponseEntity.ok(customerService.getCustomerByPhoneNo(number));
     }
 
     //GET CUSTOMER BY EMAIL
     @GetMapping("/email")
-    public ResponseEntity<CustomerResponse> getCustomerByEmail(@RequestParam String mail){
+    public ResponseEntity<CustomerResponse> getCustomerByEmail(@RequestParam
+                                                                   @NotBlank(message = "Email must not be blank")
+                                                                   @Email(message = "Invalid Email Format")
+                                                                   String mail){
         return ResponseEntity.ok(customerService.getCustomerByEmail(mail));
     }
 
@@ -76,17 +98,24 @@ public class CustomerController {
                 .body(customerService.addCustomer(request));
     }
 
-    //6.DELETE CUSTOMER BY CUSTOMER ID
-    @DeleteMapping("/{customerId}")
-    public ResponseEntity<Void> deleteCustomerById(@PathVariable Integer customerId){
-        customerService.deleteCustomer(customerId);
+    //6.DE-ACTIVATE CUSTOMER
+    @DeleteMapping("/{customerId}/de-activate")
+    public ResponseEntity<Void> deActivateCustomer(@PathVariable Integer customerId){
+        customerService.deActivateCustomer(customerId);
+        return ResponseEntity.noContent().build();
+    }
+
+    //RE-ACTIVATE CUSTOMER
+    @PutMapping("/{customerId}/re-activate")
+    public ResponseEntity<Void> reActivateCustomer(@PathVariable Integer customerId){
+        customerService.reActivateCustomer(customerId);
         return ResponseEntity.noContent().build();
     }
 
     //7.UPDATE CUSTOMER DETAILS BY CUSTOMER ID
-    @PutMapping("/{customerId}")
+    @PatchMapping("/{customerId}")
     public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable Integer customerId,
-                                                           @RequestBody CustomerUpdateRequest request){
+                                                           @Valid @RequestBody CustomerUpdateRequest request){
 
         return ResponseEntity.ok(customerService.updateCustomer(customerId,request));
     }

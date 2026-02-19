@@ -28,7 +28,8 @@ public class CustomerMapper {
                 customer.getCustomerName(),
                 customer.getCustomerPhoneNo(),
                 customer.getCustomerEmail(),
-                customer.getRole()
+                customer.getRole(),
+                customer.isActive()
         );
     }
 }

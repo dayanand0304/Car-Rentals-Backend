@@ -17,5 +17,6 @@ public class CustomerResponse {
     private String customerPhoneNo;
     private String customerEmail;
     private Role role;
+    private Boolean active;
 }
 

@@ -1,6 +1,7 @@
 package com.CarRentalSystem.CarRentals.ExceptionHandler;
 
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.*;
+import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerAlreadyDeletedException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerAlreadyExistsException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Rentals.*;
@@ -84,7 +85,8 @@ public class GlobalExceptionHandler {
             RentalAlreadyCancelledException.class,
             CustomerAlreadyExistsException.class,
             CannotCancelException.class,
-            CarAlreadyExistsException.class
+            CarAlreadyExistsException.class,
+            CustomerAlreadyDeletedException.class
     })
     public ResponseEntity<ErrorResponse> handleConflict(RuntimeException ex,
                                                         HttpServletRequest request){
@@ -101,6 +103,7 @@ public class GlobalExceptionHandler {
             Exception ex,
             HttpServletRequest request
     ) {
+
         return buildErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Unexpected server error",
