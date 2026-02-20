@@ -34,9 +34,6 @@ public class Rental {
     @Column(nullable = false)
     private Integer duration;
 
-    @Column(precision = 9,scale = 2,nullable = false)
-    private BigDecimal totalPrice;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RentalType rentalType;
@@ -48,12 +45,28 @@ public class Rental {
 
     private LocalDateTime actualReturnTime;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private BookingStatus status= BookingStatus.PENDING;
+    private LocalDateTime canceledTime;
+
+    @Column(precision = 9,scale = 2,nullable = false)
+    private BigDecimal totalPrice;
+
+    @Column(precision = 9,scale = 2,nullable = false)
+    private BigDecimal taxAmount;
+
+    @Column(precision = 9,scale = 2)
+    private BigDecimal discountAmount;
 
     private BigDecimal lateFee;
 
     private boolean damaged;
+
+    private BigDecimal damagedFee;
+
+    @Column(precision = 9,scale = 2,nullable = false)
+    private BigDecimal grandTotal;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private BookingStatus status= BookingStatus.PENDING;
 
 }

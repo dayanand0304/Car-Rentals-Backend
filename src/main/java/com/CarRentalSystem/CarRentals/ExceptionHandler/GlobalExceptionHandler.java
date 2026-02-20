@@ -6,6 +6,7 @@ import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerAlready
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Rentals.*;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     //404: NOT FOUND
@@ -28,6 +30,9 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException ex,
                                                         HttpServletRequest request){
+
+        log.warn("404 NOT FOUND at [{}]:{}",request.getRequestURI(),ex.getMessage());
+
         return buildErrorResponse(
                 HttpStatus.NOT_FOUND,
                 ex.getMessage(),
@@ -43,6 +48,8 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<ErrorResponse> handleBadRequest(RuntimeException ex,
                                                           HttpServletRequest request){
+
+        log.warn("400 BAD REQUEST at [{}],{}",request.getRequestURI(),ex.getMessage());
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 ex.getMessage(),
@@ -54,6 +61,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CarNotActiveException.class)
     public ResponseEntity<ErrorResponse> handleGone(RuntimeException ex,
                                                     HttpServletRequest request){
+
+        log.warn("410 GONE at [{}],{}",request.getRequestURI(),ex.getMessage());
+
         return buildErrorResponse(
                 HttpStatus.GONE,
                 ex.getMessage(),
@@ -71,6 +81,9 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage)
                 .findFirst()
                 .orElse("Validation failed");
+
+        log.warn("VALIDATION FAILED at [{}],{}",request.getRequestURI(),ex.getMessage());
+
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 message,
@@ -90,6 +103,9 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<ErrorResponse> handleConflict(RuntimeException ex,
                                                         HttpServletRequest request){
+
+        log.warn("409 CONFLICT at [{}],{}",request.getRequestURI(),ex.getMessage());
+
         return buildErrorResponse(
                 HttpStatus.CONFLICT,
                 ex.getMessage(),
@@ -103,6 +119,13 @@ public class GlobalExceptionHandler {
             Exception ex,
             HttpServletRequest request
     ) {
+
+        log.error(
+                "Unhandled Exception Occurred | Path:{} | Time:{}",
+                request.getRequestURI(),
+                LocalDateTime.now(),
+                ex
+        );
 
         return buildErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,

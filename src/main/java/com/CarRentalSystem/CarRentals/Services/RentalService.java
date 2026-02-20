@@ -50,7 +50,7 @@ public class RentalService {
     //2.GET RENTAL BY ID
     public RentalResponse getRentalByRentalId(Integer rentalId){
         log.info("Fetching All Rentals By Rental Id:{}",rentalId);
-        Rental rental=rentalRepository.findById(rentalId)
+        Rental rental=rentalRepository.findByRentalId(rentalId)
                 .orElseThrow(()->new RentalNotFoundException(rentalId));
 
         return RentalMapper.response(rental);
@@ -110,15 +110,7 @@ public class RentalService {
         return PageMapper.toPageResponse(page,RentalMapper::response);
     }
 
-    //6.FIND BY CAR ID AND STATUS
-    public PageResponse<RentalResponse> getRentalByCarIdAndStatus(Integer carId,BookingStatus status,Pageable pageable){
-        log.info("Fetching All Rentals By Customer Id:{} With {}",carId,status);
-        Page<Rental> page=rentalRepository.findByCarCarIdAndStatus(carId,status,pageable);
-
-        return PageMapper.toPageResponse(page,RentalMapper::response);
-    }
-
-    //7.RENT A CAR
+    //RENT A CAR
     @Transactional
     public RentalResponse rentACar(Integer carId,
                            Integer customerId,
@@ -177,7 +169,17 @@ public class RentalService {
         }
 
         BigDecimal totalPrice=calculatePrice(car,rentalType,duration);
+
+        BigDecimal tax=totalPrice.multiply(new BigDecimal("0.18"));
+
+        BigDecimal discount=calculateDiscount(totalPrice,rental.getRentalType(),rental.getDuration());
+
+        BigDecimal grandTotal=totalPrice.add(tax).subtract(discount);
+
         rental.setTotalPrice(totalPrice);
+        rental.setTaxAmount(tax);
+        rental.setDiscountAmount(discount);
+        rental.setGrandTotal(grandTotal);
 
         car.setAvailable(false);
         carRepository.save(car);
@@ -187,7 +189,34 @@ public class RentalService {
         return RentalMapper.response(saved);
     }
 
-    //FOR CALCULATING PRICE FOR RENTAL
+    //8.RETURN A CAR
+    @Transactional
+    public RentalResponse returnACar(Integer rentalId,Boolean damaged,BigDecimal damagedFee){
+        log.info("Fetching Rental With Rental Id:{}",rentalId);
+        Rental rental=rentalRepository.findById(rentalId)
+                .orElseThrow(()->{
+                    log.error("Rental With Id:{} Not Found",rentalId);
+                    return new RentalNotFoundException(rentalId);
+                });
+
+        if (rental.getStatus() == BookingStatus.CANCELLED) {
+            throw new RentalAlreadyCancelledException();
+        }
+
+        if (rental.getActualReturnTime() != null) {
+            throw new RentalAlreadyReturnedException();
+        }
+        Car car=rental.getCar();
+
+        calculateGrandTotal(rental,damaged,damagedFee);
+
+        carRepository.save(car);
+        Rental saved=rentalRepository.save(rental);
+        log.info("Rental with id:{} updated on return", saved.getRentalId());
+        return RentalMapper.response(saved);
+    }
+
+    //CALCULATING PRICE BASED ON RENTAL TYPE
     private BigDecimal calculatePrice(
             Car car,
             RentalType rentalType,
@@ -208,57 +237,87 @@ public class RentalService {
         };
     }
 
-    //8.RETURN A CAR
-    @Transactional
-    public RentalResponse returnACar(Integer rentalId){
-        log.info("Fetching Rental With Rental Id:{}",rentalId);
-        Rental rental=rentalRepository.findById(rentalId)
-                .orElseThrow(()->{
-                    log.error("Rental With Id:{} Not Found",rentalId);
-                    return new RentalNotFoundException(rentalId);
-                });
+    //CALCULATE DISCOUNT
+    private BigDecimal calculateDiscount(BigDecimal basePrice,
+                                         RentalType rentalType,
+                                         int duration) {
 
-        if (rental.getStatus() == BookingStatus.CANCELLED) {
-            throw new RentalAlreadyCancelledException();
+        BigDecimal discount = BigDecimal.ZERO;
+
+        if (rentalType == RentalType.DAILY) {
+
+            if (duration > 20) {
+                discount = basePrice.multiply(new BigDecimal("0.20"));
+            } else if (duration > 10) {
+                discount = basePrice.multiply(new BigDecimal("0.15"));
+            } else if (duration > 7) {
+                discount = basePrice.multiply(new BigDecimal("0.10"));
+            }
         }
 
-        if (rental.getActualReturnTime() != null) {
-            throw new RentalAlreadyReturnedException();
-        }
+        return discount.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    //CALCULATE GRAND TOTAL
+    private void calculateGrandTotal(Rental rental,Boolean damaged,BigDecimal damagedFee){
+
+        BigDecimal totalPrice=rental.getTotalPrice();
+        BigDecimal discount=BigDecimal.ZERO;
+        BigDecimal damageCost=BigDecimal.ZERO;
+        BigDecimal lateFee=BigDecimal.ZERO;
 
         Car car=rental.getCar();
         LocalDateTime now=LocalDateTime.now();
-        rental.setActualReturnTime(now);
-
         LocalDateTime expected=rental.getExpectedReturnTime();
-        BigDecimal totalPrice=rental.getTotalPrice();
 
+        //LATE FEE
         if(now.isAfter(expected)){
-            long extraHours= Math.max(1,ChronoUnit.HOURS.between(expected,now));
+            long extraHours= Math.max(1,
+                    ChronoUnit.HOURS.between(expected,LocalDateTime.now()));
 
             BigDecimal rentPerHour= BigDecimal.valueOf(car.getCarRentPerDay())
                     .divide(BigDecimal.valueOf(24),2,RoundingMode.HALF_UP);
 
             BigDecimal fineHour=BigDecimal.valueOf(50);
 
-            BigDecimal extraCost= rentPerHour.add(fineHour)
+            lateFee = rentPerHour.add(fineHour)
                     .multiply(BigDecimal.valueOf(extraHours));
-
-            rental.setLateFee(extraCost);
-            totalPrice=totalPrice.add(extraCost);
-
-            log.info("Late return for rentalId:{} extraHours:{} extraCost:{}", rentalId, extraHours, extraCost);
         }
-        rental.setTotalPrice(totalPrice);
-        rental.setStatus(BookingStatus.COMPLETED);
-        car.setAvailable(true);
-        carRepository.save(car);
 
-        log.info("Car With Id:{} Marked as Available and Saved",car.getCarId());
+        //DAMAGE
+        if(Boolean.TRUE.equals(damaged)){
+            if(damagedFee==null){
+                throw new DamagedFeeNullException();
+            }
 
-        Rental saved=rentalRepository.save(rental);
-        log.info("Rental with id:{} updated on return", saved.getRentalId());
-        return RentalMapper.response(saved);
+            damageCost=damagedFee;
+            rental.setDamaged(true);
+            rental.setStatus(BookingStatus.COMPLETED_WITH_DAMAGED);
+            car.setAvailable(false);
+        }else {
+            rental.setStatus(BookingStatus.COMPLETED);
+            car.setAvailable(true);
+        }
+
+        //SUBTOTAL
+        BigDecimal subTotal=totalPrice
+                .add(lateFee)
+                .add(damageCost);
+
+        BigDecimal tax=subTotal
+                .multiply(new BigDecimal("0.18"))
+                .setScale(2,RoundingMode.HALF_UP);
+
+        discount=calculateDiscount(totalPrice,rental.getRentalType(),rental.getDuration());
+
+        BigDecimal grandTotal=subTotal.add(tax).subtract(discount);
+
+        rental.setActualReturnTime(now);
+        rental.setTaxAmount(tax);
+        rental.setDiscountAmount(discount);
+        rental.setDamagedFee(damageCost);
+        rental.setLateFee(lateFee);
+        rental.setGrandTotal(grandTotal);
     }
 
     //9.CANCEL A CAR
@@ -289,5 +348,23 @@ public class RentalService {
         log.info("Car With Id:{} Marked as Available and Saved",car.getCarId());
         rentalRepository.save(rental);
         log.info("Car With Id:{} Cancelled",rentalId);
+    }
+
+
+    @Transactional
+    public void markCarAsRepaired(Integer carId) {
+
+        Car car = carRepository.findById(carId)
+                .orElseThrow(() -> new CarNotFoundException(carId));
+
+        if (car.getAvailable()) {
+            throw new IllegalStateException("Car is already available");
+        }
+
+        car.setAvailable(true);
+
+        carRepository.save(car);
+
+        log.info("Car {} marked as repaired and available", carId);
     }
 }

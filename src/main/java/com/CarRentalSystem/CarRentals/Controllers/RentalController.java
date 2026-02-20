@@ -1,6 +1,7 @@
 package com.CarRentalSystem.CarRentals.Controllers;
 
 import com.CarRentalSystem.CarRentals.DTO.Request.RentalCreateRequest;
+import com.CarRentalSystem.CarRentals.DTO.Request.RentalReturnRequest;
 import com.CarRentalSystem.CarRentals.DTO.Response.PageResponse;
 import com.CarRentalSystem.CarRentals.DTO.Response.RentalResponse;
 import com.CarRentalSystem.CarRentals.Enums.BookingStatus;
@@ -23,20 +24,18 @@ public class RentalController {
     private final RentalService rentalService;
 
     //1.GET ALL RENTALS
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<PageResponse<RentalResponse>> getAllRentals(
             @RequestParam(required = false) Integer customerId,
             @RequestParam(required = false) Integer carId,
             @RequestParam(required = false) BookingStatus status,
             @RequestParam(required = false)RentalType rentalType,
-            @PageableDefault(size = 10,sort="rentalId")Pageable pageable
+            @PageableDefault(size = 5,sort="rentalId")Pageable pageable
             ){
         PageResponse<RentalResponse> rentals;
 
         if(customerId!=null && status!=null){
             rentals = rentalService.getRentalByCustomerIdAndStatus(customerId,status,pageable);
-        }else if(carId!=null && status!=null) {
-            rentals = rentalService.getRentalByCarIdAndStatus(carId, status,pageable);
         }else if(customerId!=null){
             rentals = rentalService.getRentalsByCustomerId(customerId,pageable);
         }else if(carId!=null){
@@ -86,14 +85,25 @@ public class RentalController {
 
     //8.RETURN A CAR
     @PutMapping("/{rentalId}/return")
-    public ResponseEntity<RentalResponse> returnCar(@PathVariable Integer rentalId){
-        return ResponseEntity.ok(rentalService.returnACar(rentalId));
+    public ResponseEntity<RentalResponse> returnCar(@PathVariable Integer rentalId,
+                                                    @Valid @RequestBody RentalReturnRequest request){
+        return ResponseEntity.ok(rentalService.returnACar(
+                rentalId,
+                request.getDamaged(),
+                request.getDamagedFee()));
     }
 
     //9.CANCEL RENTAL
     @DeleteMapping("/{rentalId}/cancel")
     public ResponseEntity<Void> cancelRental(@PathVariable Integer rentalId){
         rentalService.cancelCar(rentalId);
+        return ResponseEntity.noContent().build();
+    }
+
+    //SET DAMAGED CAR TO AVAILABLE
+    @PutMapping("/cars/{carId}/set-available")
+    public ResponseEntity<Void> repairCar(@PathVariable Integer carId){
+        rentalService.markCarAsRepaired(carId);
         return ResponseEntity.noContent().build();
     }
 }

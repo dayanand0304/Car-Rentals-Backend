@@ -15,19 +15,31 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class RentalResponse {
     private Integer rentalId;
+
     private Integer carId;
+    private String carBrand;
     private String carModel;
+
     private Integer customerId;
     private String customerName;
+
     private RentalType rentalType;
     private Integer duration;
 
     private LocalDateTime startTime;
     private LocalDateTime expectedReturnTime;
+    private LocalDateTime actualReturnTime;
 
     private BookingStatus status;
-    private boolean damaged;
-    private BigDecimal lateFee;
-    private BigDecimal totalPrice;
 
+
+    private BigDecimal totalPrice;
+    private BigDecimal taxAmount;
+    private BigDecimal discountAmount;
+
+    private boolean damaged;
+    private BigDecimal damagedFee;
+
+    private BigDecimal lateFee;
+    private BigDecimal grandTotal;
 }
