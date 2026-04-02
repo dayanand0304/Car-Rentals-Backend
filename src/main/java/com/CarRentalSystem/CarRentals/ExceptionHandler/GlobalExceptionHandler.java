@@ -3,6 +3,7 @@ package com.CarRentalSystem.CarRentals.ExceptionHandler;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.*;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerAlreadyDeletedException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerAlreadyExistsException;
+import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerInActiveException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Rentals.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,11 +41,28 @@ public class GlobalExceptionHandler {
         );
     }
 
+    //403: FORBIDDEN
+    @ExceptionHandler({
+            CustomerInActiveException.class
+    })
+    public ResponseEntity<ErrorResponse> handleForbidden(RuntimeException ex,
+                                                         HttpServletRequest request
+                                                         ){
+        log.warn("403 forbidden at [{}],{}",request.getRequestURI(),ex.getMessage());
+
+        return buildErrorResponse(
+                HttpStatus.FORBIDDEN,
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
     //400: Bad Request
     @ExceptionHandler({
             DurationException.class,
             RentalTypeException.class,
-            RegistrationNumberFormatException.class
+            RegistrationNumberFormatException.class,
+            DamagedFeeNullException.class
     })
     public ResponseEntity<ErrorResponse> handleBadRequest(RuntimeException ex,
                                                           HttpServletRequest request){

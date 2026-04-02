@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,8 @@ import java.time.LocalDateTime;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
 
     //1.GET ALL CUSTOMERS
@@ -103,6 +106,9 @@ public class CustomerService {
                 customerRepository.existsByCustomerPhoneNo(customer.getCustomerPhoneNo())){
             throw new CustomerAlreadyExistsException();
         }
+
+        customer.setPassword(passwordEncoder.encode(customer.getPassword()));
+
         if(request.getRole()==null){
             customer.setRole(Role.CUSTOMER);
         }else{
