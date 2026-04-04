@@ -13,12 +13,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequestMapping("/rentals")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class RentalController {
 
     private final RentalService rentalService;
@@ -71,6 +73,7 @@ public class RentalController {
 
     //7.RENT A CAR
     @PostMapping("/rent-car")
+    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     public ResponseEntity<RentalResponse> rentACar(@Valid @RequestBody RentalCreateRequest request){
 
         RentalResponse rental=rentalService.rentACar(
@@ -85,6 +88,7 @@ public class RentalController {
 
     //8.RETURN A CAR
     @PutMapping("/{rentalId}/return")
+    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     public ResponseEntity<RentalResponse> returnCar(@PathVariable Integer rentalId,
                                                     @Valid @RequestBody RentalReturnRequest request){
         return ResponseEntity.ok(rentalService.returnACar(
@@ -95,6 +99,7 @@ public class RentalController {
 
     //9.CANCEL RENTAL
     @DeleteMapping("/{rentalId}/cancel")
+    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     public ResponseEntity<Void> cancelRental(@PathVariable Integer rentalId){
         rentalService.cancelCar(rentalId);
         return ResponseEntity.noContent().build();

@@ -13,12 +13,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequestMapping("/cars")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
 public class CarController {
 
     private final CarService carService;
@@ -71,8 +73,6 @@ public class CarController {
         return ResponseEntity.ok(cars);
     }
 
-
-
     //GET CAR BY ID
     @GetMapping("/{carId}")
     public ResponseEntity<CarResponse> getCarById(@PathVariable Integer carId){
@@ -115,6 +115,7 @@ public class CarController {
 
     // ADD CAR
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CarResponse> addCar(
             @Valid @RequestBody CarCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -123,6 +124,7 @@ public class CarController {
 
     // DE-ACTIVATE CAR
     @DeleteMapping("/{carId}/de-activate")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCar(@PathVariable Integer carId) {
         carService.deActivateCar(carId);
         return ResponseEntity.noContent().build();
@@ -130,6 +132,7 @@ public class CarController {
 
     //RE-ACTIVATE CAR
     @PutMapping("/{carId}/re-activate")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> reActivateCar(@PathVariable Integer carId){
         carService.reActivateCar(carId);
         return ResponseEntity.noContent().build();
@@ -137,6 +140,7 @@ public class CarController {
 
     // UPDATE CAR
     @PatchMapping("/{carId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CarResponse> updateCar(
             @PathVariable Integer carId,
             @RequestBody CarUpdateRequest request) {

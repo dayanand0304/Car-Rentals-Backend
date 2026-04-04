@@ -3,12 +3,13 @@ package com.CarRentalSystem.CarRentals.Controllers;
 import com.CarRentalSystem.CarRentals.DTO.Request.AuthRequest;
 import com.CarRentalSystem.CarRentals.DTO.Request.CustomerCreateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Response.CustomerResponse;
-import com.CarRentalSystem.CarRentals.Security.JwtUtil;
+import com.CarRentalSystem.CarRentals.Security.JwtService;
 import com.CarRentalSystem.CarRentals.Services.CustomerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +24,7 @@ public class AuthController {
 
     private final CustomerService customerService;
     private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
+    private final JwtService jwtService;
 
     @PostMapping("/login")
     public String login(@RequestBody AuthRequest request){
@@ -33,7 +34,7 @@ public class AuthController {
                         request.getPassword()
                 )
         );
-        return jwtUtil.generateToken(request.getCustomerEmail());
+        return jwtService.generateToken(request.getCustomerEmail());
     }
 
     //5.ADD CUSTOMER

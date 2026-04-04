@@ -18,3 +18,7 @@ logging:
     org:
       springframework:
         security: DEBUG
+
+jwt:
+  secret: mycarrentals@dayanand1234
+  expiration: 360000
