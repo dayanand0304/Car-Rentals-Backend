@@ -6,6 +6,11 @@ import com.CarRentalSystem.CarRentals.DTO.Response.CustomerResponse;
 import com.CarRentalSystem.CarRentals.DTO.Response.PageResponse;
 import com.CarRentalSystem.CarRentals.Enums.Role;
 import com.CarRentalSystem.CarRentals.Services.CustomerService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -20,8 +25,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-
-
+@Tag(name = "Customer APIs", description = "Operations related to customer management")
 @RestController
 @RequestMapping("/customers")
 @RequiredArgsConstructor
@@ -29,14 +33,20 @@ import org.springframework.web.bind.annotation.*;
 @PreAuthorize("hasRole('ADMIN')")
 public class CustomerController {
 
-
     private final CustomerService customerService;
 
-    //1.GET ALL CUSTOMERS
+    // GET ALL CUSTOMERS
+    @Operation(
+            summary = "Get Customers",
+            description = "Fetch customers with optional filters like name, phone number, or role"
+    )
+    @ApiResponse(responseCode = "200", description = "Customers fetched successfully",
+            content = @Content(schema = @Schema(implementation = PageResponse.class)))
     @GetMapping
     public ResponseEntity<PageResponse<CustomerResponse>> getCustomers(
+
             @RequestParam(required = false)
-            @Size(max = 100,message = "customer name length must not exceed")
+            @Size(max = 100, message = "customer name length must not exceed")
             String customerName,
 
             @RequestParam(required = false)
@@ -45,80 +55,117 @@ public class CustomerController {
                     message = "Invalid Phone Number"
             )
             String customerPhoneNo,
+
             @RequestParam(required = false) Role role,
-            @PageableDefault(size = 5,sort = "customerId")Pageable pageable
-            ){
+
+            @PageableDefault(size = 5, sort = "customerId") Pageable pageable
+    ) {
 
         PageResponse<CustomerResponse> customers;
 
-        if(customerName!=null){
-            customers = customerService.getCustomersByName(customerName,pageable);
+        if (customerName != null) {
+            customers = customerService.getCustomersByName(customerName, pageable);
 
-        }else if(customerPhoneNo!=null){
-            customers = customerService.getCustomersByPhoneNoContaining(customerPhoneNo,pageable);
+        } else if (customerPhoneNo != null) {
+            customers = customerService.getCustomersByPhoneNoContaining(customerPhoneNo, pageable);
 
-        }else if(role!=null){
-            customers = customerService.getCustomersByRole(role,pageable);
+        } else if (role != null) {
+            customers = customerService.getCustomersByRole(role, pageable);
 
-        }else{
+        } else {
             customers = customerService.getAllCustomers(pageable);
         }
 
         return ResponseEntity.ok(customers);
     }
 
-    //2.GET CUSTOMER BY CUSTOMER ID
+    // GET CUSTOMER BY ID
+    @Operation(summary = "Get Customer by ID",
+            description = "Fetch a customer using their unique ID")
+    @ApiResponse(responseCode = "200", description = "Customer found",
+            content = @Content(schema = @Schema(implementation = CustomerResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Customer not found")
     @GetMapping("/{customerId}")
-    public ResponseEntity<CustomerResponse> getCustomerById(@PathVariable Integer customerId){
+    public ResponseEntity<CustomerResponse> getCustomerById(@PathVariable Integer customerId) {
         return ResponseEntity.ok(customerService.getCustomerById(customerId));
     }
 
-    //GET CUSTOMER BY PHONE NO
+    // GET CUSTOMER BY PHONE
+    @Operation(summary = "Get Customer by Phone Number",
+            description = "Fetch a customer using their phone number")
+    @ApiResponse(responseCode = "200", description = "Customer found",
+            content = @Content(schema = @Schema(implementation = CustomerResponse.class)))
     @GetMapping("/phone")
-    public ResponseEntity<CustomerResponse> getCustomerByPhoneNo(@RequestParam
-                                                                     @NotBlank(message = "phone number must not be blank")
-                                                                     @Pattern(
-                                                                             regexp = "^[6-9]\\d{9}$", message = "Invalid Phone Number"
-                                                                     )
-                                                                     String number){
+    public ResponseEntity<CustomerResponse> getCustomerByPhoneNo(
+            @RequestParam
+            @NotBlank(message = "phone number must not be blank")
+            @Pattern(regexp = "^[6-9]\\d{9}$", message = "Invalid Phone Number")
+            String number) {
+
         return ResponseEntity.ok(customerService.getCustomerByPhoneNo(number));
     }
 
-    //GET CUSTOMER BY EMAIL
+    // GET CUSTOMER BY EMAIL
+    @Operation(summary = "Get Customer by Email",
+            description = "Fetch a customer using their email address")
+    @ApiResponse(responseCode = "200", description = "Customer found",
+            content = @Content(schema = @Schema(implementation = CustomerResponse.class)))
     @GetMapping("/email")
-    public ResponseEntity<CustomerResponse> getCustomerByEmail(@RequestParam
-                                                                   @NotBlank(message = "Email must not be blank")
-                                                                   @Email(message = "Invalid Email Format")
-                                                                   String mail){
+    public ResponseEntity<CustomerResponse> getCustomerByEmail(
+            @RequestParam
+            @NotBlank(message = "Email must not be blank")
+            @Email(message = "Invalid Email Format")
+            String mail) {
+
         return ResponseEntity.ok(customerService.getCustomerByEmail(mail));
     }
 
-    //5.ADD CUSTOMER
+    // ADD CUSTOMER
+    @Operation(summary = "Add New Customer",
+            description = "Create a new customer account (Admin only)")
+    @ApiResponse(responseCode = "201", description = "Customer created successfully",
+            content = @Content(schema = @Schema(implementation = CustomerResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Validation error")
     @PostMapping
-    public ResponseEntity<CustomerResponse> addCustomer(@Valid @RequestBody RegisterRequest request){
+    public ResponseEntity<CustomerResponse> addCustomer(
+            @Valid @RequestBody RegisterRequest request) {
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(customerService.addCustomer(request));
     }
 
-    //6.DE-ACTIVATE CUSTOMER
+    // DEACTIVATE CUSTOMER
+    @Operation(summary = "Deactivate Customer",
+            description = "Deactivate a customer account by ID")
+    @ApiResponse(responseCode = "204", description = "Customer deactivated successfully")
+    @ApiResponse(responseCode = "404", description = "Customer not found")
     @DeleteMapping("/{customerId}/de-activate")
-    public ResponseEntity<Void> deActivateCustomer(@PathVariable Integer customerId){
+    public ResponseEntity<Void> deActivateCustomer(@PathVariable Integer customerId) {
         customerService.deActivateCustomer(customerId);
         return ResponseEntity.noContent().build();
     }
 
-    //RE-ACTIVATE CUSTOMER
+    // REACTIVATE CUSTOMER
+    @Operation(summary = "Reactivate Customer",
+            description = "Reactivate a customer account by ID")
+    @ApiResponse(responseCode = "204", description = "Customer reactivated successfully")
     @PutMapping("/{customerId}/re-activate")
-    public ResponseEntity<Void> reActivateCustomer(@PathVariable Integer customerId){
+    public ResponseEntity<Void> reActivateCustomer(@PathVariable Integer customerId) {
         customerService.reActivateCustomer(customerId);
         return ResponseEntity.noContent().build();
     }
 
-    //7.UPDATE CUSTOMER DETAILS BY CUSTOMER ID
+    // UPDATE CUSTOMER
+    @Operation(summary = "Update Customer",
+            description = "Update customer details partially using customer ID")
+    @ApiResponse(responseCode = "200", description = "Customer updated successfully",
+            content = @Content(schema = @Schema(implementation = CustomerResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Customer not found")
     @PatchMapping("/{customerId}")
-    public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable Integer customerId,
-                                                           @Valid @RequestBody CustomerUpdateRequest request){
+    public ResponseEntity<CustomerResponse> updateCustomer(
+            @PathVariable Integer customerId,
+            @Valid @RequestBody CustomerUpdateRequest request) {
 
-        return ResponseEntity.ok(customerService.updateCustomer(customerId,request));
+        return ResponseEntity.ok(customerService.updateCustomer(customerId, request));
     }
 }

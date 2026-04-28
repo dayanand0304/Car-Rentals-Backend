@@ -20,7 +20,10 @@ public class RefreshTokenService {
 
     //CREATE REFRESH TOKEN
     public RefreshToken createRefreshToken(Customer customer){
-        RefreshToken token=new RefreshToken();
+
+        RefreshToken token=refreshTokenRepository
+                .findByCustomer(customer)
+                .orElse(new RefreshToken());
 
         token.setCustomer(customer);
         token.setToken(UUID.randomUUID().toString());

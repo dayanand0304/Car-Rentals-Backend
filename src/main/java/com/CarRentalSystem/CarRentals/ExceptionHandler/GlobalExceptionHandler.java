@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,7 +17,7 @@ import java.time.LocalDateTime;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    //404: NOT FOUND
+    // 404: NOT FOUND
     @ExceptionHandler({
             CarNotFoundException.class,
             CustomerNotFoundException.class,
@@ -27,9 +26,9 @@ public class GlobalExceptionHandler {
             RentalNotFoundByCarIdException.class
     })
     public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException ex,
-                                                        HttpServletRequest request){
+                                                        HttpServletRequest request) {
 
-        log.warn("404 NOT FOUND at [{}]:{}",request.getRequestURI(),ex.getMessage());
+        log.warn("404 NOT FOUND at [{}]: {}", request.getRequestURI(), ex.getMessage());
 
         return buildErrorResponse(
                 HttpStatus.NOT_FOUND,
@@ -38,15 +37,15 @@ public class GlobalExceptionHandler {
         );
     }
 
-    //403: FORBIDDEN
+    // 403: FORBIDDEN
     @ExceptionHandler({
             CustomerInActiveException.class,
             RefreshTokenExpireException.class
     })
     public ResponseEntity<ErrorResponse> handleForbidden(RuntimeException ex,
-                                                         HttpServletRequest request
-                                                         ){
-        log.warn("403 forbidden at [{}],{}",request.getRequestURI(),ex.getMessage());
+                                                         HttpServletRequest request) {
+
+        log.warn("403 FORBIDDEN at [{}]: {}", request.getRequestURI(), ex.getMessage());
 
         return buildErrorResponse(
                 HttpStatus.FORBIDDEN,
@@ -55,7 +54,7 @@ public class GlobalExceptionHandler {
         );
     }
 
-    //400: Bad Request
+    // 400: BAD REQUEST
     @ExceptionHandler({
             DurationException.class,
             RentalTypeException.class,
@@ -63,9 +62,10 @@ public class GlobalExceptionHandler {
             DamagedFeeNullException.class
     })
     public ResponseEntity<ErrorResponse> handleBadRequest(RuntimeException ex,
-                                                          HttpServletRequest request){
+                                                          HttpServletRequest request) {
 
-        log.warn("400 BAD REQUEST at [{}],{}",request.getRequestURI(),ex.getMessage());
+        log.warn("400 BAD REQUEST at [{}]: {}", request.getRequestURI(), ex.getMessage());
+
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 ex.getMessage(),
@@ -73,12 +73,12 @@ public class GlobalExceptionHandler {
         );
     }
 
-    //410: GONE
+    // 410: GONE
     @ExceptionHandler(CarNotActiveException.class)
     public ResponseEntity<ErrorResponse> handleGone(RuntimeException ex,
-                                                    HttpServletRequest request){
+                                                    HttpServletRequest request) {
 
-        log.warn("410 GONE at [{}],{}",request.getRequestURI(),ex.getMessage());
+        log.warn("410 GONE at [{}]: {}", request.getRequestURI(), ex.getMessage());
 
         return buildErrorResponse(
                 HttpStatus.GONE,
@@ -87,18 +87,19 @@ public class GlobalExceptionHandler {
         );
     }
 
-    //400: Validation Failure
+    // 400: VALIDATION FAILURE
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationError(MethodArgumentNotValidException ex,
-                                                               HttpServletRequest request){
-        String message=ex.getBindingResult()
+                                                               HttpServletRequest request) {
+
+        String message = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(FieldError::getDefaultMessage)
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .findFirst()
                 .orElse("Validation failed");
 
-        log.warn("VALIDATION FAILED at [{}],{}",request.getRequestURI(),ex.getMessage());
+        log.warn("VALIDATION FAILED at [{}]: {}", request.getRequestURI(), message);
 
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
@@ -107,7 +108,7 @@ public class GlobalExceptionHandler {
         );
     }
 
-    //409: Conflict
+    // 409: CONFLICT
     @ExceptionHandler({
             CarNotAvailableException.class,
             RentalAlreadyReturnedException.class,
@@ -118,9 +119,9 @@ public class GlobalExceptionHandler {
             CustomerAlreadyDeletedException.class
     })
     public ResponseEntity<ErrorResponse> handleConflict(RuntimeException ex,
-                                                        HttpServletRequest request){
+                                                        HttpServletRequest request) {
 
-        log.warn("409 CONFLICT at [{}],{}",request.getRequestURI(),ex.getMessage());
+        log.warn("409 CONFLICT at [{}]: {}", request.getRequestURI(), ex.getMessage());
 
         return buildErrorResponse(
                 HttpStatus.CONFLICT,
@@ -129,15 +130,14 @@ public class GlobalExceptionHandler {
         );
     }
 
-    //500: Internal Server Error
+    // 500: INTERNAL SERVER ERROR
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex,
-            HttpServletRequest request
-    ) {
+            HttpServletRequest request) {
 
         log.error(
-                "Unhandled Exception Occurred | Path:{} | Time:{}",
+                "Unhandled Exception | Path: {} | Time: {}",
                 request.getRequestURI(),
                 LocalDateTime.now(),
                 ex
@@ -152,14 +152,16 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status,
                                                              String message,
-                                                             String path){
-        ErrorResponse error=new ErrorResponse(
+                                                             String path) {
+
+        ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
                 status.value(),
                 status.name(),
                 message,
                 path
         );
+
         return ResponseEntity.status(status).body(error);
     }
 }

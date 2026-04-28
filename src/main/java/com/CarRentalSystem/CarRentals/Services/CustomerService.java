@@ -81,6 +81,12 @@ public class CustomerService {
         return CustomerMapper.response(customer);
     }
 
+    //GET CUSTOMER ENTITY BY EMAIL
+    public Customer getCustomerEntityByEmail(String email) {
+        return customerRepository.findByCustomerEmailIgnoreCase(email)
+                .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
+    }
+
     //GET CUSTOMERS BY ROLE
     public PageResponse<CustomerResponse> getCustomersByRole(Role role,Pageable pageable){
         Page<Customer> page=customerRepository.findByRole(role,pageable);
