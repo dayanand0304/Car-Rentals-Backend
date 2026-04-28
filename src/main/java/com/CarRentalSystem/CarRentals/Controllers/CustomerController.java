@@ -1,6 +1,6 @@
 package com.CarRentalSystem.CarRentals.Controllers;
 
-import com.CarRentalSystem.CarRentals.DTO.Request.CustomerCreateRequest;
+import com.CarRentalSystem.CarRentals.DTO.Request.RegisterRequest;
 import com.CarRentalSystem.CarRentals.DTO.Request.CustomerUpdateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Response.CustomerResponse;
 import com.CarRentalSystem.CarRentals.DTO.Response.PageResponse;
@@ -95,7 +95,7 @@ public class CustomerController {
 
     //5.ADD CUSTOMER
     @PostMapping
-    public ResponseEntity<CustomerResponse> addCustomer(@Valid @RequestBody CustomerCreateRequest request){
+    public ResponseEntity<CustomerResponse> addCustomer(@Valid @RequestBody RegisterRequest request){
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(customerService.addCustomer(request));
     }

@@ -28,7 +28,6 @@ public class CarController {
     /**
      * GET /cars
      * Supports filtering by brand, model, availability
-     *
      * Examples:
      * /cars
      * /cars?brand=BMW

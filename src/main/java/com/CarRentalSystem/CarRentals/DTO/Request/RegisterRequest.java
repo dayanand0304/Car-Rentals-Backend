@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CustomerCreateRequest {
+public class RegisterRequest {
 
     @NotBlank(message = "Customer must not be blank")
     @Size(max = 100,message = "customer name length must not exceed")

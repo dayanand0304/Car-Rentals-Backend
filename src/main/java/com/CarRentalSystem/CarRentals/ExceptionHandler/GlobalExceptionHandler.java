@@ -1,10 +1,7 @@
 package com.CarRentalSystem.CarRentals.ExceptionHandler;
 
 import com.CarRentalSystem.CarRentals.CustomExceptions.Cars.*;
-import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerAlreadyDeletedException;
-import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerAlreadyExistsException;
-import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerInActiveException;
-import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
+import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.*;
 import com.CarRentalSystem.CarRentals.CustomExceptions.Rentals.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +40,8 @@ public class GlobalExceptionHandler {
 
     //403: FORBIDDEN
     @ExceptionHandler({
-            CustomerInActiveException.class
+            CustomerInActiveException.class,
+            RefreshTokenExpireException.class
     })
     public ResponseEntity<ErrorResponse> handleForbidden(RuntimeException ex,
                                                          HttpServletRequest request

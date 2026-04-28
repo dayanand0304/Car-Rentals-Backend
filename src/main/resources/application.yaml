@@ -20,5 +20,5 @@ logging:
         security: DEBUG
 
 jwt:
-  secret: mycarrentals@dayanand1234
+  secret: MyCarRentals@Dayanand@1234@secretkey@1
   expiration: 360000

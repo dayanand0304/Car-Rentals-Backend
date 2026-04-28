@@ -5,7 +5,7 @@ import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerAlready
 import com.CarRentalSystem.CarRentals.CustomExceptions.Customers.CustomerNotFoundException;
 import com.CarRentalSystem.CarRentals.DTO.CustomerMapper;
 import com.CarRentalSystem.CarRentals.DTO.PageMapper;
-import com.CarRentalSystem.CarRentals.DTO.Request.CustomerCreateRequest;
+import com.CarRentalSystem.CarRentals.DTO.Request.RegisterRequest;
 import com.CarRentalSystem.CarRentals.DTO.Request.CustomerUpdateRequest;
 import com.CarRentalSystem.CarRentals.DTO.Response.CustomerResponse;
 import com.CarRentalSystem.CarRentals.DTO.Response.PageResponse;
@@ -96,7 +96,7 @@ public class CustomerService {
     }
 
     //5.ADD CUSTOMER
-    public CustomerResponse addCustomer(CustomerCreateRequest request){
+    public CustomerResponse addCustomer(RegisterRequest request){
 
         Customer customer=CustomerMapper.create(request);
 
