@@ -6,6 +6,7 @@ import com.CarRentalSystem.CarRentals.DTO.Response.CarResponse;
 import com.CarRentalSystem.CarRentals.DTO.Response.PageResponse;
 import com.CarRentalSystem.CarRentals.Enums.FuelType;
 import com.CarRentalSystem.CarRentals.Enums.SeatType;
+import com.CarRentalSystem.CarRentals.ExceptionHandler.ErrorResponse;
 import com.CarRentalSystem.CarRentals.Services.CarService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -30,13 +32,13 @@ public class CarController {
 
     private final CarService carService;
 
-    // GET ALL CARS WITH FILTERS
+    //GET ALL CARS WITH FILTERS
     @Operation(
             summary = "Get Cars",
             description = "Fetch cars with optional filters like brand, model, fuel type, seat type, and availability"
     )
     @ApiResponse(responseCode = "200", description = "Cars fetched successfully",
-            content = @Content(schema = @Schema(implementation = PageResponse.class)))
+            content = @Content(schema = @Schema(implementation = CarResponse.class)))
     @GetMapping
     public ResponseEntity<PageResponse<CarResponse>> getCars(
             @RequestParam(required = false) String brand,
@@ -44,7 +46,7 @@ public class CarController {
             @RequestParam(required = false) FuelType fuelType,
             @RequestParam(required = false) SeatType seats,
             @RequestParam(required = false) Boolean available,
-            @PageableDefault(size = 20, sort = "carId") Pageable pageable
+            @ParameterObject @PageableDefault(size = 20, sort = "carId") Pageable pageable
     ) {
 
         PageResponse<CarResponse> cars;
@@ -79,7 +81,8 @@ public class CarController {
             description = "Fetch a single car using its unique ID")
     @ApiResponse(responseCode = "200", description = "Car found",
             content = @Content(schema = @Schema(implementation = CarResponse.class)))
-    @ApiResponse(responseCode = "404", description = "Car not found")
+    @ApiResponse(responseCode = "404", description = "Car not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @GetMapping("/{carId}")
     public ResponseEntity<CarResponse> getCarById(@PathVariable Integer carId) {
         return ResponseEntity.ok(carService.getCarById(carId));
@@ -98,12 +101,12 @@ public class CarController {
     @Operation(summary = "Get Cars by Price Range",
             description = "Fetch cars within a given minimum and maximum price range")
     @ApiResponse(responseCode = "200", description = "Cars fetched successfully",
-            content = @Content(schema = @Schema(implementation = PageResponse.class)))
+            content = @Content(schema = @Schema(implementation = CarResponse.class)))
     @GetMapping("/price-range")
     public ResponseEntity<PageResponse<CarResponse>> getsCarsByPriceRange(
             @RequestParam Integer min,
             @RequestParam Integer max,
-            @PageableDefault(size = 5, sort = "carRentPerDay") Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 5, sort = "carRentPerDay") Pageable pageable) {
 
         return ResponseEntity.ok(carService.getCarsByPriceRange(min, max, pageable));
     }
@@ -113,7 +116,8 @@ public class CarController {
             description = "Fetch a car using its registration number")
     @ApiResponse(responseCode = "200", description = "Car found",
             content = @Content(schema = @Schema(implementation = CarResponse.class)))
-    @ApiResponse(responseCode = "404", description = "Car not found")
+    @ApiResponse(responseCode = "404", description = "Car not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @GetMapping("/register-number")
     public ResponseEntity<CarResponse> getCarByRegisterNum(@RequestParam String number) {
         return ResponseEntity.ok(carService.getCarByRegisterNum(number));
@@ -123,11 +127,13 @@ public class CarController {
     @Operation(summary = "Get Cars by Last 4 Digits",
             description = "Fetch cars matching last four digits of registration number")
     @ApiResponse(responseCode = "200", description = "Cars fetched successfully",
-            content = @Content(schema = @Schema(implementation = PageResponse.class)))
+            content = @Content(schema = @Schema(implementation = CarResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Car not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @GetMapping("/last-four-digits")
     public ResponseEntity<PageResponse<CarResponse>> getCarsByLastFourDigits(
             @RequestParam String number,
-            @PageableDefault(size = 5, sort = "registrationNumber") Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 5, sort = "registrationNumber") Pageable pageable) {
 
         return ResponseEntity.ok(carService.getCarsByLastRegisterNum(number, pageable));
     }
@@ -136,11 +142,13 @@ public class CarController {
     @Operation(summary = "Get Cars by Active Status",
             description = "Fetch cars based on whether they are active or inactive")
     @ApiResponse(responseCode = "200", description = "Cars fetched successfully",
-            content = @Content(schema = @Schema(implementation = PageResponse.class)))
+            content = @Content(schema = @Schema(implementation = CarResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Car not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @GetMapping("/active")
     public ResponseEntity<PageResponse<CarResponse>> getCarsByActive(
             @RequestParam Boolean active,
-            @PageableDefault(size = 5, sort = "carId") Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 5, sort = "carId") Pageable pageable) {
 
         return ResponseEntity.ok(carService.getCarsByActive(active, pageable));
     }
@@ -167,9 +175,9 @@ public class CarController {
     @ApiResponse(responseCode = "404", description = "Car not found")
     @DeleteMapping("/{carId}/de-activate")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteCar(@PathVariable Integer carId) {
+    public ResponseEntity<String> deleteCar(@PathVariable Integer carId) {
         carService.deActivateCar(carId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Car With Id: "+carId+" Deactivated Successfully");
     }
 
     // REACTIVATE CAR
@@ -178,9 +186,9 @@ public class CarController {
     @ApiResponse(responseCode = "204", description = "Car reactivated successfully")
     @PutMapping("/{carId}/re-activate")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> reActivateCar(@PathVariable Integer carId) {
+    public ResponseEntity<String> reActivateCar(@PathVariable Integer carId) {
         carService.reActivateCar(carId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Car With Id: "+carId+" ReActivated Successfully");
     }
 
     // UPDATE CAR
@@ -188,7 +196,8 @@ public class CarController {
             description = "Update car details partially (Admin only)")
     @ApiResponse(responseCode = "200", description = "Car updated successfully",
             content = @Content(schema = @Schema(implementation = CarResponse.class)))
-    @ApiResponse(responseCode = "404", description = "Car not found")
+    @ApiResponse(responseCode = "404", description = "Car not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @PatchMapping("/{carId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CarResponse> updateCar(

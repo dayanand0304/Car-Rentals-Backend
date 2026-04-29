@@ -21,7 +21,7 @@ public class RegisterRequest {
 
     @Schema(
             description = "10-digit Indian mobile number",
-            example = "9876543210"
+            example = "9988776655"
     )
     @NotBlank(message = "phone number must not be blank")
     @Pattern(
@@ -32,7 +32,7 @@ public class RegisterRequest {
 
     @Schema(
             description = "Customer email address",
-            example = "dayanand03@example.com"
+            example = "dayanand03@gmail.com"
     )
     @NotBlank(message = "Email must not be blank")
     @Email(message = "Invalid Email Format")
@@ -40,7 +40,7 @@ public class RegisterRequest {
 
     @Schema(
             description = "Password (8-20 chars, must include uppercase, lowercase, number, special char)",
-            example = "Strong@123",
+            example = "Dayanand@123",
             format = "password"
     )
     @NotBlank(message = "password must not be blank")

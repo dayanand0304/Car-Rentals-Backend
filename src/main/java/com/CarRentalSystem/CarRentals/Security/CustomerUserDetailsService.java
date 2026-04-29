@@ -31,7 +31,7 @@ public class CustomerUserDetailsService implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
                 customer.getCustomerEmail(),
                 customer.getPassword(),
-                List.of(new SimpleGrantedAuthority(customer.getRole().name()))
+                List.of(new SimpleGrantedAuthority("ROLE_"+ customer.getRole().name()))
         );
     }
 }

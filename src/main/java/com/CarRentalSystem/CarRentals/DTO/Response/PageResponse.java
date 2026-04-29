@@ -1,5 +1,6 @@
 package com.CarRentalSystem.CarRentals.DTO.Response;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,10 +17,10 @@ public class PageResponse<T> {
     @Schema(description = "List of items in current page")
     private List<T> content;
 
-    @Schema(example = "0", description = "Current page number")
+    @Parameter(example = "0", description = "Current page number")
     private int page;
 
-    @Schema(example = "10", description = "Page size")
+    @Parameter(example = "10", description = "Page size")
     private int size;
 
     @Schema(example = "100", description = "Total number of elements")

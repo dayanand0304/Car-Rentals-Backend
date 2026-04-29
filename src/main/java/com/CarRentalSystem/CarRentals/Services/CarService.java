@@ -167,6 +167,7 @@ public class CarService {
             throw new CarNotAvailableException(carId);
         }
         car.setActive(false);
+        car.setAvailable(false);
         car.setDeletedAt(LocalDateTime.now());
         carRepository.save(car);
         log.info("Car with id:{} deleted successfully", carId);
@@ -182,6 +183,7 @@ public class CarService {
         }
 
         car.setActive(true);
+        car.setAvailable(true);
         car.setDeletedAt(null);
         carRepository.save(car);
     }

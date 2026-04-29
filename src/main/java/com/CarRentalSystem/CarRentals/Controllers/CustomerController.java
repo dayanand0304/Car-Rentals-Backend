@@ -17,6 +17,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -41,7 +42,7 @@ public class CustomerController {
             description = "Fetch customers with optional filters like name, phone number, or role"
     )
     @ApiResponse(responseCode = "200", description = "Customers fetched successfully",
-            content = @Content(schema = @Schema(implementation = PageResponse.class)))
+            content = @Content(schema = @Schema(implementation = CustomerResponse.class)))
     @GetMapping
     public ResponseEntity<PageResponse<CustomerResponse>> getCustomers(
 
@@ -58,7 +59,7 @@ public class CustomerController {
 
             @RequestParam(required = false) Role role,
 
-            @PageableDefault(size = 5, sort = "customerId") Pageable pageable
+            @ParameterObject @PageableDefault(size = 5, sort = "customerId") Pageable pageable
     ) {
 
         PageResponse<CustomerResponse> customers;
@@ -120,29 +121,15 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.getCustomerByEmail(mail));
     }
 
-    // ADD CUSTOMER
-    @Operation(summary = "Add New Customer",
-            description = "Create a new customer account (Admin only)")
-    @ApiResponse(responseCode = "201", description = "Customer created successfully",
-            content = @Content(schema = @Schema(implementation = CustomerResponse.class)))
-    @ApiResponse(responseCode = "400", description = "Validation error")
-    @PostMapping
-    public ResponseEntity<CustomerResponse> addCustomer(
-            @Valid @RequestBody RegisterRequest request) {
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(customerService.addCustomer(request));
-    }
-
     // DEACTIVATE CUSTOMER
     @Operation(summary = "Deactivate Customer",
             description = "Deactivate a customer account by ID")
     @ApiResponse(responseCode = "204", description = "Customer deactivated successfully")
     @ApiResponse(responseCode = "404", description = "Customer not found")
     @DeleteMapping("/{customerId}/de-activate")
-    public ResponseEntity<Void> deActivateCustomer(@PathVariable Integer customerId) {
+    public ResponseEntity<String> deActivateCustomer(@PathVariable Integer customerId) {
         customerService.deActivateCustomer(customerId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Customer with Id: "+customerId+" DeActivated Successfully");
     }
 
     // REACTIVATE CUSTOMER
@@ -150,9 +137,9 @@ public class CustomerController {
             description = "Reactivate a customer account by ID")
     @ApiResponse(responseCode = "204", description = "Customer reactivated successfully")
     @PutMapping("/{customerId}/re-activate")
-    public ResponseEntity<Void> reActivateCustomer(@PathVariable Integer customerId) {
+    public ResponseEntity<String> reActivateCustomer(@PathVariable Integer customerId) {
         customerService.reActivateCustomer(customerId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Customer with Id: "+customerId+" ReActivated Successfully");
     }
 
     // UPDATE CUSTOMER

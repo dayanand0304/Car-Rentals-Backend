@@ -13,7 +13,7 @@ public class LoginRequest {
 
     @Schema(
             description = "Customer email used for login",
-            example = "dayanand03@example.com"
+            example = "dayanand03@gmail.com"
     )
     @NotBlank(message = "Email must not be blank")
     @Email(message = "Invalid Email Format")

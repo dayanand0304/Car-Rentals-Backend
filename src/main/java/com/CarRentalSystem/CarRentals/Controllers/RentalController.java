@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -36,14 +37,14 @@ public class RentalController {
             description = "Fetch rentals with optional filters like customer ID, car ID, booking status, and rental type"
     )
     @ApiResponse(responseCode = "200", description = "Rentals fetched successfully",
-            content = @Content(schema = @Schema(implementation = PageResponse.class)))
+            content = @Content(schema = @Schema(implementation = RentalResponse.class)))
     @GetMapping
     public ResponseEntity<PageResponse<RentalResponse>> getAllRentals(
             @RequestParam(required = false) Integer customerId,
             @RequestParam(required = false) Integer carId,
             @RequestParam(required = false) BookingStatus status,
             @RequestParam(required = false) RentalType rentalType,
-            @PageableDefault(size = 5, sort = "rentalId") Pageable pageable
+            @ParameterObject @PageableDefault(size = 5, sort = "rentalId") Pageable pageable
     ) {
 
         PageResponse<RentalResponse> rentals;
@@ -89,10 +90,10 @@ public class RentalController {
             description = "Fetch all rentals where cars are marked as damaged"
     )
     @ApiResponse(responseCode = "200", description = "Damaged rentals fetched",
-            content = @Content(schema = @Schema(implementation = PageResponse.class)))
+            content = @Content(schema = @Schema(implementation = RentalResponse.class)))
     @GetMapping("/damaged")
     public ResponseEntity<PageResponse<RentalResponse>> getAllDamagedRentals(
-            @PageableDefault(size = 10, sort = "rentalId") Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 10, sort = "rentalId") Pageable pageable) {
 
         return ResponseEntity.ok(rentalService.getRentalsOfDamaged(pageable));
     }
@@ -103,10 +104,10 @@ public class RentalController {
             description = "Fetch rentals that are overdue and not returned on time"
     )
     @ApiResponse(responseCode = "200", description = "Overdue rentals fetched",
-            content = @Content(schema = @Schema(implementation = PageResponse.class)))
+            content = @Content(schema = @Schema(implementation = RentalResponse.class)))
     @GetMapping("/over-dues")
     public ResponseEntity<PageResponse<RentalResponse>> getOverDues(
-            @PageableDefault(size = 10, sort = "rentalId") Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 10, sort = "rentalId") Pageable pageable) {
 
         return ResponseEntity.ok(rentalService.getAllOverdueRentals(pageable));
     }
@@ -166,9 +167,9 @@ public class RentalController {
     @ApiResponse(responseCode = "404", description = "Rental not found")
     @DeleteMapping("/{rentalId}/cancel")
     @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
-    public ResponseEntity<Void> cancelRental(@PathVariable Integer rentalId) {
+    public ResponseEntity<String> cancelRental(@PathVariable Integer rentalId) {
         rentalService.cancelCar(rentalId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Car with Rental Id: "+rentalId+" Cancelled");
     }
 
     // MARK CAR AS REPAIRED
@@ -178,8 +179,8 @@ public class RentalController {
     )
     @ApiResponse(responseCode = "204", description = "Car marked as available")
     @PutMapping("/cars/{carId}/set-available")
-    public ResponseEntity<Void> repairCar(@PathVariable Integer carId) {
+    public ResponseEntity<String> repairCar(@PathVariable Integer carId) {
         rentalService.markCarAsRepaired(carId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Car With Id: "+carId+" successfully Repaired and available now");
     }
 }
