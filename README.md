@@ -381,7 +381,7 @@ POST /api/auth/login
 ## All APIs
 
 <p align="center">
-  <img src="screenshots/APIs.png" width="900"/>
+  <img src="screenshots/apis.png" width="900"/>
 </p>
 
 ---
@@ -389,7 +389,7 @@ POST /api/auth/login
 ## JWT Login Response
 
 <p align="center">
-  <img src="screenshots/Login-Response.png" width="900"/>
+  <img src="screenshots/login-response.png" width="900"/>
 </p>
 
 ---
@@ -397,7 +397,7 @@ POST /api/auth/login
 ## Database Schema
 
 <p align="center">
-  <img src="screenshots/Database-Overview.png" width="900"/>
+  <img src="screenshots/database-overview.png" width="900"/>
 </p>
 
 ---
