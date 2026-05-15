@@ -108,8 +108,7 @@ public class CustomerService {
 
         log.info("Adding Customers With Name:{} and Email:{}",customer.getCustomerName(),customer.getCustomerEmail());
 
-        if(customerRepository.existsByCustomerEmail(customer.getCustomerEmail()) ||
-                customerRepository.existsByCustomerPhoneNo(customer.getCustomerPhoneNo())){
+        if(customerRepository.existsByCustomerEmail(customer.getCustomerEmail())){
             throw new CustomerAlreadyExistsException();
         }
 
@@ -163,13 +162,6 @@ public class CustomerService {
                     }
                     if(request.getCustomerName()!=null){
                         existing.setCustomerName(request.getCustomerName());
-                    }
-                    if(request.getCustomerPhoneNo()!=null){
-                        if(!request.getCustomerPhoneNo().equals(existing.getCustomerPhoneNo()) &&
-                                customerRepository.existsByCustomerPhoneNo(request.getCustomerPhoneNo())){
-                            throw new CustomerAlreadyExistsException();
-                        }
-                        existing.setCustomerPhoneNo(request.getCustomerPhoneNo());
                     }
                     if(request.getCustomerEmail()!=null){
                         if(customerRepository.existsByCustomerEmail(request.getCustomerEmail())){

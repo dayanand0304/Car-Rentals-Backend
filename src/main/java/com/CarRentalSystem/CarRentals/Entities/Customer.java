@@ -25,9 +25,6 @@ public class Customer {
     @Column(nullable = false,length=100)
     private String customerName;
 
-    @Column(nullable = false,unique = true,length = 10)
-    private String customerPhoneNo;
-
     @Column(nullable = false,unique = true,length = 40)
     private String customerEmail;
 
