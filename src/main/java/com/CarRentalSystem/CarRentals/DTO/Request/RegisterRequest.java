@@ -23,17 +23,6 @@ public class RegisterRequest {
             description = "10-digit Indian mobile number",
             example = "9988776655"
     )
-    @NotBlank(message = "phone number must not be blank")
-    @Pattern(
-            regexp = "^[6-9]\\d{9}$",
-            message = "Invalid Phone Number"
-    )
-    private String customerPhoneNo;
-
-    @Schema(
-            description = "Customer email address",
-            example = "dayanand03@gmail.com"
-    )
     @NotBlank(message = "Email must not be blank")
     @Email(message = "Invalid Email Format")
     private String customerEmail;

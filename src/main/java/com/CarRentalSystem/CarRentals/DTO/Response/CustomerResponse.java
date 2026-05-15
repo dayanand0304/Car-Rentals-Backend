@@ -18,9 +18,6 @@ public class CustomerResponse {
     @Schema(example = "Ravi Kumar", description = "Customer name")
     private String customerName;
 
-    @Schema(example = "9876543210", description = "Phone number")
-    private String customerPhoneNo;
-
     @Schema(example = "ravi.kumar@example.com", description = "Email address")
     private String customerEmail;
 
