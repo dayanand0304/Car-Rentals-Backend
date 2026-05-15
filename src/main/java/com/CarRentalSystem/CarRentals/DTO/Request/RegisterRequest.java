@@ -19,9 +19,10 @@ public class RegisterRequest {
     @Size(max = 100, message = "customer name length must not exceed")
     private String customerName;
 
+
     @Schema(
-            description = "10-digit Indian mobile number",
-            example = "9988776655"
+            description = "Customer email address",
+            example = "dayanand03@gmail.com"
     )
     @NotBlank(message = "Email must not be blank")
     @Email(message = "Invalid Email Format")
