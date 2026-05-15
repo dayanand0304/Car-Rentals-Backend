@@ -58,21 +58,6 @@ public class CustomerService {
         return PageMapper.toPageResponse(page,CustomerMapper::response);
     }
 
-    //GET CUSTOMER BY CUSTOMER PHONE NO
-    public CustomerResponse getCustomerByPhoneNo(String number){
-        Customer customer=customerRepository.findByCustomerPhoneNo(number)
-                .orElseThrow(()->new CustomerNotFoundException("Customer with Phone No: "+number+" not found"));
-
-        return CustomerMapper.response(customer);
-    }
-
-    //GET CUSTOMERS BY CUSTOMER PHONE NO CONTAINING
-    public PageResponse<CustomerResponse> getCustomersByPhoneNoContaining(String number,Pageable pageable){
-        Page<Customer> page=customerRepository.findByCustomerPhoneNoContaining(number,pageable);
-
-        return PageMapper.toPageResponse(page,CustomerMapper::response);
-    }
-
     //GET CUSTOMER BY EMAIL
     public CustomerResponse getCustomerByEmail(String mail){
         Customer customer=customerRepository.findByCustomerEmailIgnoreCase(mail)
