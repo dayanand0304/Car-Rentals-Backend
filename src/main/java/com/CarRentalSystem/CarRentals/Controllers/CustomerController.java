@@ -50,13 +50,6 @@ public class CustomerController {
             @Size(max = 100, message = "customer name length must not exceed")
             String customerName,
 
-            @RequestParam(required = false)
-            @Pattern(
-                    regexp = "^[6-9]\\d{9}$",
-                    message = "Invalid Phone Number"
-            )
-            String customerPhoneNo,
-
             @RequestParam(required = false) Role role,
 
             @ParameterObject @PageableDefault(size = 5, sort = "customerId") Pageable pageable
@@ -67,8 +60,6 @@ public class CustomerController {
         if (customerName != null) {
             customers = customerService.getCustomersByName(customerName, pageable);
 
-        } else if (customerPhoneNo != null) {
-            customers = customerService.getCustomersByPhoneNoContaining(customerPhoneNo, pageable);
 
         } else if (role != null) {
             customers = customerService.getCustomersByRole(role, pageable);
@@ -89,21 +80,6 @@ public class CustomerController {
     @GetMapping("/{customerId}")
     public ResponseEntity<CustomerResponse> getCustomerById(@PathVariable Integer customerId) {
         return ResponseEntity.ok(customerService.getCustomerById(customerId));
-    }
-
-    // GET CUSTOMER BY PHONE
-    @Operation(summary = "Get Customer by Phone Number",
-            description = "Fetch a customer using their phone number")
-    @ApiResponse(responseCode = "200", description = "Customer found",
-            content = @Content(schema = @Schema(implementation = CustomerResponse.class)))
-    @GetMapping("/phone")
-    public ResponseEntity<CustomerResponse> getCustomerByPhoneNo(
-            @RequestParam
-            @NotBlank(message = "phone number must not be blank")
-            @Pattern(regexp = "^[6-9]\\d{9}$", message = "Invalid Phone Number")
-            String number) {
-
-        return ResponseEntity.ok(customerService.getCustomerByPhoneNo(number));
     }
 
     // GET CUSTOMER BY EMAIL
