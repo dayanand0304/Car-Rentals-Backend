@@ -15,14 +15,22 @@ import java.util.Optional;
 public interface CarRepository extends JpaRepository<Car,Integer> {
 
     Page<Car> findByCarBrandContainingIgnoreCase(String carBrand,Pageable pageable);
-    Page<Car> findByCarBrandAndCarModelContainingIgnoreCase(String carBrand, String carModel,Pageable pageable);
+    Page<Car> findByCarBrandContainingIgnoreCaseAndCarModelContainingIgnoreCase(String carBrand, String carModel,Pageable pageable);
+    Page<Car> findByCarBrandContainingIgnoreCaseAndCarModelContainingIgnoreCaseAndAvailable(
+            String carBrand,
+            String carModel,
+            Boolean available,
+            Pageable pageable);
     Page<Car> findByFuelType(FuelType fuelType,Pageable pageable);
     Page<Car> findBySeats(SeatType seats,Pageable pageable);
     Page<Car> findByAvailableTrue(Pageable pageable);
+    Page<Car> findByAvailable(Boolean available, Pageable pageable);
     Page<Car> findByCarBrandContainingIgnoreCaseAndAvailableTrue(String carBrand,Pageable pageable);
+    Page<Car> findByCarBrandContainingIgnoreCaseAndAvailable(String carBrand, Boolean available, Pageable pageable);
     Page<Car> findByCarRentPerDayBetween(Integer min,Integer max,Pageable pageable);
 
     Optional<Car> findByRegistrationNumber(String number);
+    Optional<Car> findByRegistrationNumberIgnoreCase(String number);
     Page<Car> findByRegistrationNumberEndingWith(String number,Pageable pageable);
     boolean existsByRegistrationNumber(String number);
 

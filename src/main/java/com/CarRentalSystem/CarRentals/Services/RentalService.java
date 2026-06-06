@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -115,7 +116,9 @@ public class RentalService {
     public RentalResponse rentACar(Integer carId,
                            Integer customerId,
                            RentalType rentalType,
-                           Integer duration){
+                           Integer duration,
+                           String requesterEmail,
+                           boolean admin){
 
         log.info("Renting Process of {} Bases Started for customerId:{} and carId:{}",
                 rentalType,customerId,carId);
@@ -125,15 +128,10 @@ public class RentalService {
             throw new DurationException(duration);
         }
 
-        log.info("Fetching Customer With Id:{}",customerId);
-        Customer customer=customerRepository.findById(customerId)
-                .orElseThrow(()-> {
-                    log.error("Customer With Id {} Not Found",customerId);
-                    return new CustomerNotFoundException(customerId);
-                });
+        Customer customer = resolveBookingCustomer(customerId, requesterEmail, admin);
 
         if(!customer.isActive()){
-            throw new CustomerNotFoundException(customerId);
+            throw new CustomerNotFoundException(customer.getCustomerId());
         }
 
         log.info("Fetching Car With Id:{}",carId);
@@ -191,13 +189,19 @@ public class RentalService {
 
     //8.RETURN A CAR
     @Transactional
-    public RentalResponse returnACar(Integer rentalId,Boolean damaged,BigDecimal damagedFee){
+    public RentalResponse returnACar(Integer rentalId,
+                                     Boolean damaged,
+                                     BigDecimal damagedFee,
+                                     String requesterEmail,
+                                     boolean admin){
         log.info("Fetching Rental With Rental Id:{}",rentalId);
         Rental rental=rentalRepository.findById(rentalId)
                 .orElseThrow(()->{
                     log.error("Rental With Id:{} Not Found",rentalId);
                     return new RentalNotFoundException(rentalId);
                 });
+
+        validateRentalAccess(rental, requesterEmail, admin);
 
         if (rental.getStatus() == BookingStatus.CANCELLED) {
             throw new RentalAlreadyCancelledException();
@@ -322,7 +326,7 @@ public class RentalService {
 
     //9.CANCEL A CAR
     @Transactional
-    public void cancelCar(Integer rentalId){
+    public void cancelCar(Integer rentalId, String requesterEmail, boolean admin){
         log.info("Fetching Rental With Rental Id:{}",rentalId);
         Rental rental=rentalRepository.findById(rentalId)
                 .orElseThrow(()->{
@@ -330,11 +334,11 @@ public class RentalService {
                     return new RentalNotFoundException(rentalId);
                 });
 
-        if(rental.getStatus()==BookingStatus.CANCELLED){
-            throw new CannotCancelException();
-        }
+        validateRentalAccess(rental, requesterEmail, admin);
 
-        if(rental.getStatus()==BookingStatus.COMPLETED){
+        if(rental.getStatus()==BookingStatus.CANCELLED ||
+                rental.getActualReturnTime() != null ||
+                rental.getStatus() == BookingStatus.COMPLETED_WITH_DAMAGED){
             throw new CannotCancelException();
         }
 
@@ -342,6 +346,7 @@ public class RentalService {
         car.setAvailable(true);
 
         rental.setStatus(BookingStatus.CANCELLED);
+        rental.setCanceledTime(LocalDateTime.now());
 
         carRepository.save(car);
 
@@ -358,7 +363,15 @@ public class RentalService {
                 .orElseThrow(() -> new CarNotFoundException(carId));
 
         if (car.getAvailable()) {
-            throw new IllegalStateException("Car is already available");
+            throw new InvalidRentalStateException("Car is already available");
+        }
+
+        Rental latestRental = rentalRepository.findTopByCarCarIdOrderByStartTimeDesc(carId)
+                .orElseThrow(() -> new InvalidRentalStateException("No rental history found for this car"));
+
+        if (latestRental.getStatus() != BookingStatus.COMPLETED_WITH_DAMAGED ||
+                latestRental.getActualReturnTime() == null) {
+            throw new InvalidRentalStateException("Only damaged returned cars can be marked as repaired");
         }
 
         car.setAvailable(true);
@@ -366,5 +379,29 @@ public class RentalService {
         carRepository.save(car);
 
         log.info("Car {} marked as repaired and available", carId);
+    }
+
+    private Customer resolveBookingCustomer(Integer customerId, String requesterEmail, boolean admin) {
+        if (admin) {
+            log.info("Fetching Customer With Id:{}",customerId);
+            return customerRepository.findById(customerId)
+                    .orElseThrow(() -> {
+                        log.error("Customer With Id {} Not Found",customerId);
+                        return new CustomerNotFoundException(customerId);
+                    });
+        }
+
+        return customerRepository.findByCustomerEmailIgnoreCase(requesterEmail)
+                .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
+    }
+
+    private void validateRentalAccess(Rental rental, String requesterEmail, boolean admin) {
+        if (admin) {
+            return;
+        }
+
+        if (!rental.getCustomer().getCustomerEmail().equalsIgnoreCase(requesterEmail)) {
+            throw new AccessDeniedException("You are not allowed to access this rental");
+        }
     }
 }

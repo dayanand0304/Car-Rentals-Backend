@@ -51,11 +51,14 @@ public class CarController {
 
         PageResponse<CarResponse> cars;
 
-        if (brand != null && model != null) {
+        if (brand != null && model != null && available != null) {
+            cars = carService.getCarsByBrandModelAndAvailability(brand, model, available, pageable);
+
+        } else if (brand != null && model != null) {
             cars = carService.getCarsByBrandAndModel(brand, model, pageable);
 
-        } else if (brand != null && Boolean.TRUE.equals(available)) {
-            cars = carService.getCarsByBrandAndAvailableTrue(brand, pageable);
+        } else if (brand != null && available != null) {
+            cars = carService.getCarsByBrandAndAvailability(brand, available, pageable);
 
         } else if (brand != null) {
             cars = carService.getCarsByBrand(brand, pageable);
@@ -66,8 +69,8 @@ public class CarController {
         } else if (seats != null) {
             cars = carService.getCarsBySeatType(seats, pageable);
 
-        } else if (Boolean.TRUE.equals(available)) {
-            cars = carService.getAvailableCars(pageable);
+        } else if (available != null) {
+            cars = carService.getCarsByAvailability(available, pageable);
 
         } else {
             cars = carService.getAllCars(pageable);

@@ -62,6 +62,13 @@ public class CarService {
         return PageMapper.toPageResponse(page,CarMapper::response);
     }
 
+    public PageResponse<CarResponse> getCarsByAvailability(Boolean available, Pageable pageable){
+        log.info("Fetching Cars By Availability:{}", available);
+        Page<Car> page = carRepository.findByAvailable(available, pageable);
+
+        return PageMapper.toPageResponse(page,CarMapper::response);
+    }
+
     //4.GET CAR DETAILS BY CAR BRAND
     public PageResponse<CarResponse> getCarsByBrand(String carBrand,Pageable pageable){
         log.info("Fetching All Cars By BrandName:{}",carBrand);
@@ -78,11 +85,37 @@ public class CarService {
         return PageMapper.toPageResponse(page,CarMapper::response);
     }
 
+    public PageResponse<CarResponse> getCarsByBrandAndAvailability(String carBrand, Boolean available, Pageable pageable){
+        log.info("Fetching Cars By BrandName:{} and Availability:{}", carBrand, available);
+        Page<Car> page = carRepository.findByCarBrandContainingIgnoreCaseAndAvailable(carBrand, available, pageable);
+
+        return PageMapper.toPageResponse(page,CarMapper::response);
+    }
+
     //6.GET CAR DETAILS BY CAR BRAND AND MODEL
     public PageResponse<CarResponse> getCarsByBrandAndModel(String carBrand, String carModel,Pageable pageable){
         log.info("Fetching All Cars By BrandName:{} and CarModel:{}",carBrand,carModel);
 
-        Page<Car> page=carRepository.findByCarBrandAndCarModelContainingIgnoreCase(carBrand,carModel,pageable);
+        Page<Car> page=carRepository.findByCarBrandContainingIgnoreCaseAndCarModelContainingIgnoreCase(
+                carBrand,
+                carModel,
+                pageable
+        );
+
+        return PageMapper.toPageResponse(page,CarMapper::response);
+    }
+
+    public PageResponse<CarResponse> getCarsByBrandModelAndAvailability(String carBrand,
+                                                                        String carModel,
+                                                                        Boolean available,
+                                                                        Pageable pageable){
+        log.info("Fetching Cars By BrandName:{}, CarModel:{} and Availability:{}", carBrand, carModel, available);
+        Page<Car> page = carRepository.findByCarBrandContainingIgnoreCaseAndCarModelContainingIgnoreCaseAndAvailable(
+                carBrand,
+                carModel,
+                available,
+                pageable
+        );
 
         return PageMapper.toPageResponse(page,CarMapper::response);
     }
@@ -119,7 +152,7 @@ public class CarService {
 
     //11.FIND CAR BY REGISTRATION NUMBER
     public CarResponse getCarByRegisterNum(String number){
-        Car car=carRepository.findByRegistrationNumber(number)
+        Car car=carRepository.findByRegistrationNumberIgnoreCase(number)
                 .orElseThrow(()->new CarNotFoundException("Car With Registration Number: "+number+" not found"));
 
         return CarMapper.response(car);

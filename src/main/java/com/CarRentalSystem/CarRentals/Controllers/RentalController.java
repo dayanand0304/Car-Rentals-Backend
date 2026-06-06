@@ -20,6 +20,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Rental APIs", description = "Operations related to car rentals and booking management")
@@ -123,13 +124,16 @@ public class RentalController {
     @PostMapping("/rent-car")
     @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     public ResponseEntity<RentalResponse> rentACar(
-            @Valid @RequestBody RentalCreateRequest request) {
+            @Valid @RequestBody RentalCreateRequest request,
+            Authentication authentication) {
 
         RentalResponse rental = rentalService.rentACar(
                 request.getCarId(),
                 request.getCustomerId(),
                 request.getRentalType(),
-                request.getDuration()
+                request.getDuration(),
+                authentication.getName(),
+                isAdmin(authentication)
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(rental);
@@ -147,13 +151,16 @@ public class RentalController {
     @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     public ResponseEntity<RentalResponse> returnCar(
             @PathVariable Integer rentalId,
-            @Valid @RequestBody RentalReturnRequest request) {
+            @Valid @RequestBody RentalReturnRequest request,
+            Authentication authentication) {
 
         return ResponseEntity.ok(
                 rentalService.returnACar(
                         rentalId,
                         request.getDamaged(),
-                        request.getDamagedFee()
+                        request.getDamagedFee(),
+                        authentication.getName(),
+                        isAdmin(authentication)
                 )
         );
     }
@@ -167,8 +174,9 @@ public class RentalController {
     @ApiResponse(responseCode = "404", description = "Rental not found")
     @DeleteMapping("/{rentalId}/cancel")
     @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
-    public ResponseEntity<String> cancelRental(@PathVariable Integer rentalId) {
-        rentalService.cancelCar(rentalId);
+    public ResponseEntity<String> cancelRental(@PathVariable Integer rentalId,
+                                               Authentication authentication) {
+        rentalService.cancelCar(rentalId, authentication.getName(), isAdmin(authentication));
         return ResponseEntity.ok("Car with Rental Id: "+rentalId+" Cancelled");
     }
 
@@ -179,8 +187,15 @@ public class RentalController {
     )
     @ApiResponse(responseCode = "204", description = "Car marked as available")
     @PutMapping("/cars/{carId}/set-available")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> repairCar(@PathVariable Integer carId) {
         rentalService.markCarAsRepaired(carId);
         return ResponseEntity.ok("Car With Id: "+carId+" successfully Repaired and available now");
+    }
+
+    private boolean isAdmin(Authentication authentication) {
+        return authentication.getAuthorities()
+                .stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
     }
 }

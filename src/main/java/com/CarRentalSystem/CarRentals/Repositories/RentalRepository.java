@@ -19,6 +19,10 @@ public interface RentalRepository extends JpaRepository<Rental,Integer> {
     @EntityGraph(attributePaths = {"car","customer"})
     Page<Rental> findAll(Pageable pageable);
 
+    @Override
+    @EntityGraph(attributePaths = {"car","customer"})
+    Optional<Rental> findById(Integer integer);
+
     @EntityGraph(attributePaths = {"car","customer"})
     Optional<Rental> findByRentalId(Integer rentalId);
 
@@ -45,4 +49,7 @@ public interface RentalRepository extends JpaRepository<Rental,Integer> {
 
     @EntityGraph(attributePaths = {"car","customer"})
     Page<Rental> findByActualReturnTimeIsNullAndExpectedReturnTimeBefore(LocalDateTime now, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"car","customer"})
+    Optional<Rental> findTopByCarCarIdOrderByStartTimeDesc(Integer carId);
 }
