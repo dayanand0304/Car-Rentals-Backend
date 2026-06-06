@@ -6,23 +6,22 @@ spring:
     name: Car Rentals
 
   datasource:
-    url: jdbc:postgresql://ep-wandering-mode-ampnogsw-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require
-    username: neondb_owner
-    password: npg_sC5aSHmWJA4M
-    driver-class-name: org.postgresql.Driver
+    url: ${DB_URL:jdbc:h2:mem:car_rentals;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
 
   jpa:
     hibernate:
-      ddl-auto: create
-    show-sql: true
+      ddl-auto: ${DDL_AUTO:update}
+    show-sql: ${SHOW_SQL:false}
     open-in-view: false
 
 logging:
   level:
     org:
       springframework:
-        security: DEBUG
+        security: ${SECURITY_LOG_LEVEL:INFO}
 
 jwt:
-  secret: MyCarRentals@Dayanand@1234@secretkey@1
-  expiration: 3600000
+  secret: ${JWT_SECRET:change-this-local-jwt-secret-before-production-123456}
+  expiration: ${JWT_EXPIRATION:3600000}
