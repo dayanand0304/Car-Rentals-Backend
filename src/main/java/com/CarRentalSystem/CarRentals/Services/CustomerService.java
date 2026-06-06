@@ -93,17 +93,12 @@ public class CustomerService {
 
         log.info("Adding Customers With Name:{} and Email:{}",customer.getCustomerName(),customer.getCustomerEmail());
 
-        if(customerRepository.existsByCustomerEmail(customer.getCustomerEmail())){
+        if(customerRepository.existsByCustomerEmailIgnoreCase(customer.getCustomerEmail())){
             throw new CustomerAlreadyExistsException();
         }
 
         customer.setPassword(passwordEncoder.encode(customer.getPassword()));
-
-        if(request.getRole()==null){
-            customer.setRole(Role.CUSTOMER);
-        }else{
-            customer.setRole(request.getRole());
-        }
+        customer.setRole(Role.CUSTOMER);
         Customer saved=customerRepository.save(customer);
         log.info("Added Customer With Id:{}",saved.getCustomerId());
 
@@ -149,13 +144,14 @@ public class CustomerService {
                         existing.setCustomerName(request.getCustomerName());
                     }
                     if(request.getCustomerEmail()!=null){
-                        if(customerRepository.existsByCustomerEmail(request.getCustomerEmail())){
+                        if(!existing.getCustomerEmail().equalsIgnoreCase(request.getCustomerEmail()) &&
+                                customerRepository.existsByCustomerEmailIgnoreCase(request.getCustomerEmail())){
                             throw new CustomerAlreadyExistsException();
                         }
                         existing.setCustomerEmail(request.getCustomerEmail());
                     }
                     if(request.getPassword()!=null){
-                        existing.setPassword(request.getPassword());
+                        existing.setPassword(passwordEncoder.encode(request.getPassword()));
                     }
 
                     Customer saved=customerRepository.save(existing);

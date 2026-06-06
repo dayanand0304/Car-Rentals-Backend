@@ -1,6 +1,5 @@
 package com.CarRentalSystem.CarRentals.DTO.Request;
 
-import com.CarRentalSystem.CarRentals.Enums.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -40,11 +39,4 @@ public class RegisterRequest {
     @Pattern(regexp = ".*\\d.*", message = "password must contain at least one number")
     @Pattern(regexp = ".*[!@$%^&*].*", message = "password must contain at least one Special character")
     private String password;
-
-    @Schema(
-            description = "Role of the user",
-            example = "CUSTOMER",
-            defaultValue = "CUSTOMER"
-    )
-    private Role role = Role.CUSTOMER;
 }

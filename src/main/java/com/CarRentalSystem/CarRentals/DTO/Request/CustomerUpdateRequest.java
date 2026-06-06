@@ -2,7 +2,6 @@ package com.CarRentalSystem.CarRentals.DTO.Request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,16 +19,6 @@ public class CustomerUpdateRequest {
     private String customerName;
 
     @Schema(
-            description = "Updated phone number (10-digit Indian mobile number)",
-            example = "9876543210"
-    )
-    @Pattern(
-            regexp = "^[6-9]\\d{9}$",
-            message = "Invalid Phone Number"
-    )
-    private String customerPhoneNo;
-
-    @Schema(
             description = "Updated email address",
             example = "dayanand03@example.com"
     )
@@ -42,5 +31,9 @@ public class CustomerUpdateRequest {
             format = "password"
     )
     @Size(min = 8, max = 20, message = "password must in 8-20 characters")
+    @jakarta.validation.constraints.Pattern(regexp = ".*[A-Z].*", message = "password must contain at least one Upper case character")
+    @jakarta.validation.constraints.Pattern(regexp = ".*[a-z].*", message = "password must contain at least one Lower case character")
+    @jakarta.validation.constraints.Pattern(regexp = ".*\\d.*", message = "password must contain at least one number")
+    @jakarta.validation.constraints.Pattern(regexp = ".*[!@$%^&*].*", message = "password must contain at least one Special character")
     private String password;
 }

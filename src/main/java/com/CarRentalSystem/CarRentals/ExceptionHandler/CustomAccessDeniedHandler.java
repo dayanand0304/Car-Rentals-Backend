@@ -15,7 +15,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler{
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException ex) throws IOException {
 
         response.setStatus(403);
-        response.setContentType("applications/json");
+        response.setContentType("application/json");
         response.getWriter().write(
                 "{\"error\": \"Access Denied\"}"
         );

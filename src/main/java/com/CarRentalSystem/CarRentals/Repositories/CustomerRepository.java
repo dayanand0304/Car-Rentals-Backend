@@ -14,6 +14,7 @@ public interface CustomerRepository extends JpaRepository<Customer,Integer> {
     Page<Customer> findByCustomerNameContainingIgnoreCase(String customerName, Pageable pageable);
 
     boolean existsByCustomerEmail(String email);
+    boolean existsByCustomerEmailIgnoreCase(String email);
     Optional<Customer> findByCustomerEmailIgnoreCase(String email);
 
 

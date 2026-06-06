@@ -10,7 +10,6 @@ public class CustomerMapper {
         customer.setCustomerName(request.getCustomerName());
         customer.setCustomerEmail(request.getCustomerEmail());
         customer.setPassword(request.getPassword());
-        customer.setRole(request.getRole());
         return customer;
     }
 
