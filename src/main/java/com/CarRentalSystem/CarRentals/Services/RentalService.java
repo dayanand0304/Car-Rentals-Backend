@@ -383,6 +383,10 @@ public class RentalService {
 
     private Customer resolveBookingCustomer(Integer customerId, String requesterEmail, boolean admin) {
         if (admin) {
+            if (customerId == null) {
+                throw new CustomerIdRequiredException();
+            }
+
             log.info("Fetching Customer With Id:{}",customerId);
             return customerRepository.findById(customerId)
                     .orElseThrow(() -> {

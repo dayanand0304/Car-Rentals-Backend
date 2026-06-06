@@ -58,6 +58,7 @@ public class GlobalExceptionHandler {
 
     // 400: BAD REQUEST
     @ExceptionHandler({
+            CustomerIdRequiredException.class,
             DurationException.class,
             RentalTypeException.class,
             RegistrationNumberFormatException.class,

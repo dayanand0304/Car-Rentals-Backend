@@ -21,10 +21,9 @@ public class RentalCreateRequest {
     private Integer carId;
 
     @Schema(
-            description = "ID of the customer renting the car",
+            description = "ID of the customer renting the car. Optional for CUSTOMER users because the authenticated account is used automatically.",
             example = "101"
     )
-    @NotNull(message = "Customer id must not be null")
     @Positive(message = "Customer id should be positive")
     private Integer customerId;
 

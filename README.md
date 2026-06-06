@@ -2,7 +2,7 @@
 **Enterprise-grade backend system for managing car rental operations with real-world business logic, security, and scalable architecture.**
 
 <p align="center">
-  <b>Built with Java • Spring Boot • JWT • Docker • PostgreSQL</b>
+  <b>Built with Java • Spring Boot • JWT • Docker • H2 • PostgreSQL</b>
 </p>
 
 <p align="center">
@@ -224,8 +224,8 @@ RENTAL {
 - Spring Data JPA (Hibernate)
 
 ## Database
-- MySQL (Development)
-- PostgreSQL (Production)
+- H2 (default local / standalone run)
+- PostgreSQL (production or env-based deployment)
 
 ## Dev Tools
 - Swagger (OpenAPI)
@@ -258,7 +258,6 @@ src/main/java/com/carrentals
 ## 🔧 Prerequisites
 - Java 17+
 - Maven
-- MySQL
 
 ---
 
@@ -272,11 +271,16 @@ cd Car_Rentals
 
 # ⚙️ Configure Database
 
-~~~properties
-spring.datasource.url= jdbc:mysql://localhost:3306/car_rentals
-spring.datasource.username= your_username
-spring.datasource.password= your_password
-~~~
+The project now runs standalone with an in-memory H2 database by default.
+
+Set these environment variables only when you want PostgreSQL or another external database:
+
+```bash
+DB_URL=jdbc:postgresql://localhost:5432/car_rentals
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+JWT_SECRET=replace-with-a-long-random-secret
+```
 ---
 
 # ▶️ Run Locally
@@ -285,6 +289,8 @@ spring.datasource.password= your_password
   mvn clean install
   mvn spring-boot:run
 ```
+
+By default this starts with H2 for quick local demos. Tests use a separate `test` profile with isolated H2 data.
 
 ---
 
@@ -342,7 +348,7 @@ Authorization: Bearer <JWT_TOKEN>
 ### Endpoint
 
 ```http
-POST /api/auth/login
+POST /auth/login
 ```
 
 ---
@@ -351,7 +357,7 @@ POST /api/auth/login
 
 ```json
 {
-  "email": "example@gmail.com",
+  "customerEmail": "example@gmail.com",
   "password": "Password@123"
 }
 ```
@@ -362,9 +368,15 @@ POST /api/auth/login
 
 ```json
 {
-  "token": "your_jwt_token"
+  "accessToken": "your_jwt_token",
+  "refreshToken": "your_refresh_token"
 }
 ```
+
+## Rental Booking Note
+
+- `CUSTOMER` users can book cars for themselves. Their authenticated account is used automatically.
+- `ADMIN` users can create bookings for any customer by providing `customerId`.
 
 ---
 
@@ -454,4 +466,3 @@ Backend Developer | Java & Spring Boot
 - GitHub: https://github.com/dayanand0304
 
 ---
-
