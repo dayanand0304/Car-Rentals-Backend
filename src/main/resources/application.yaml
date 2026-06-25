@@ -23,5 +23,5 @@ logging:
         security: ${SECURITY_LOG_LEVEL:INFO}
 
 jwt:
-  secret: ${JWT_SECRET:change-this-local-jwt-secret-before-production-123456}
+  secret: ${JWT_SECRET:dayanand@car-rentals-organization-mm23451&1}
   expiration: ${JWT_EXPIRATION:3600000}
